@@ -1,5 +1,5 @@
 import Resolver from "@forge/resolver";
-import api, { route } from "@forge/api";
+import api, { route, assumeTrustedRoute } from "@forge/api";
 
 const resolver = new Resolver();
 
@@ -59,14 +59,15 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   }
 
   const meta = await metaResponse.json();
-  const downloadPath = meta.downloadLink;
+  const pageId = meta.pageId;
+  const title = meta.title;
 
-  if (!downloadPath) {
-    throw new Error("Download link not found for attachment");
+  if (!pageId || !title) {
+    throw new Error("Attachment metadata missing pageId or title");
   }
 
   const contentResponse = await api.asUser().requestConfluence(
-    `/wiki/download/attachments/${meta.pageId}/${encodeURIComponent(meta.title)}?api=v2`,
+    route`/wiki/rest/api/content/${pageId}/child/attachment/${attachmentId}/download`,
     { headers: { Accept: "text/html, */*" } }
   );
 
@@ -75,7 +76,7 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   }
 
   const htmlContent = await contentResponse.text();
-  return { html: htmlContent, title: meta.title };
+  return { html: htmlContent, title };
 });
 
 /**
