@@ -1,0 +1,25 @@
+manifest.yml
+  s_51aed462cbc2cb::t_7e19b727c1012a 47-52,60
+src/index.js
+  s_51aed462cbc2cb::t_be5b4bd569fb1e 133
+  s_51aed462cbc2cb::t_88f3b45af69c50 130-132,134-135
+  s_51aed462cbc2cb::t_cc26d018c3558f 77,84
+static/src/App.jsx
+  s_51aed462cbc2cb::t_b1cb9ad68bfa75 57-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "d45a707195edda78f4c4570a6605d838ebd62c33",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
