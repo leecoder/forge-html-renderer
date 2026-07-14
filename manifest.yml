@@ -6,7 +6,7 @@ modules:
       resource: main
       resolver:
         function: resolver
-      icon: static/icon.svg
+      icon: resource:icons;icon.svg
   function:
     - key: resolver
       handler: index.handler
@@ -14,6 +14,8 @@ modules:
 resources:
   - key: main
     path: static/build
+  - key: icons
+    path: static/images
 
 app:
   id: ari:cloud:ecosystem::app/3969caa9-9058-48ea-a53a-6d9d4077adbc
