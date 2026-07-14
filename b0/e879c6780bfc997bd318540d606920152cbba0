@@ -1,0 +1,19 @@
+static/src/App.jsx
+  s_51aed462cbc2cb::t_382986c9f89a13 25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "b0e879c6780bfc997bd318540d606920152cbba0",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
