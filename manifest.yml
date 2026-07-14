@@ -6,6 +6,7 @@ modules:
       resource: main
       resolver:
         function: resolver
+      icon: static/icon.svg
   function:
     - key: resolver
       handler: index.handler

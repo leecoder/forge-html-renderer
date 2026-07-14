@@ -13,7 +13,7 @@ function App() {
   const [iframeHeight, setIframeHeight] = useState(200);
   const [heightInput, setHeightInput] = useState("");
   const [sandboxFlags] = useState("allow-scripts allow-same-origin allow-popups");
-  const [showToolbar, setShowToolbar] = useState(true);
+  const [showToolbar, setShowToolbar] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const iframeRef = useRef(null);
@@ -23,6 +23,10 @@ function App() {
   useEffect(() => {
     async function init() {
       try {
+        const context = await view.getContext();
+        const isEditing = context?.extension?.isEditing === true;
+        setShowToolbar(isEditing);
+
         const saved = await invoke("getSavedAttachment");
         const atts = await invoke("getAttachments");
         setAttachments(atts);

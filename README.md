@@ -135,7 +135,6 @@ export NODE_TLS_REJECT_UNAUTHORIZED=0
 |------|------|------|
 | 새 창에서 열기 불가 | Forge sandbox `allow-popups` 미설정 + Confluence hostile attachment 정책 | 높이를 크게 설정하여 인라인에서 확인 |
 | 외부 CDN 와일드카드 불가 | Forge manifest에서 `https://*` 미지원 | 사용하는 CDN을 manifest에 명시적 등록 |
-| 편집/보기 모드 구분 불가 | Forge iframe cross-origin으로 parent 감지 불가 | Toolbar 항상 표시 |
 
 ## 보안
 
