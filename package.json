@@ -1,0 +1,20 @@
+{
+  "name": "forge-html-renderer",
+  "version": "1.0.0",
+  "description": "Confluence Forge macro to render HTML attachments inline with full JS/CSS support",
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "eslint src/",
+    "deploy": "forge deploy",
+    "install:site": "forge install",
+    "start": "forge tunnel"
+  },
+  "dependencies": {
+    "@forge/api": "^3.0.0",
+    "@forge/resolver": "^1.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  },
+  "license": "MIT"
+}
