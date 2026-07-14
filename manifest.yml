@@ -28,6 +28,11 @@ permissions:
     - write:confluence-file
     - write:attachment:confluence
     - storage:app
+  content:
+    scripts:
+      - "unsafe-inline"
+    styles:
+      - "unsafe-inline"
   external:
     fetch:
       backend:
