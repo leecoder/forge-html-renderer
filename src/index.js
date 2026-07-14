@@ -65,9 +65,8 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
     throw new Error("Download link not found for attachment");
   }
 
-  // Fetch the actual HTML content
   const contentResponse = await api.asUser().requestConfluence(
-    route`/wiki${downloadPath}`,
+    `/wiki/download/attachments/${meta.pageId}/${encodeURIComponent(meta.title)}?api=v2`,
     { headers: { Accept: "text/html, */*" } }
   );
 
