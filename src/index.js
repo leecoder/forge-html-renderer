@@ -1,11 +1,9 @@
 import Resolver from "@forge/resolver";
-import api, { route, assumeTrustedRoute } from "@forge/api";
+import api, { route } from "@forge/api";
+import { kvs } from "@forge/kvs";
 
 const resolver = new Resolver();
 
-/**
- * List all HTML attachments on the current page (v2 API)
- */
 resolver.define("getAttachments", async ({ payload, context }) => {
   const pageId = context.extension.content.id;
 
@@ -21,7 +19,6 @@ resolver.define("getAttachments", async ({ payload, context }) => {
 
   const data = await response.json();
 
-  // Filter to HTML files only
   const htmlAttachments = data.results.filter((att) => {
     const mediaType = att.mediaType || "";
     const filename = att.title || "";
@@ -42,9 +39,6 @@ resolver.define("getAttachments", async ({ payload, context }) => {
   }));
 });
 
-/**
- * Fetch the HTML content of a specific attachment (v2 API)
- */
 resolver.define("getAttachmentContent", async ({ payload, context }) => {
   const { attachmentId } = payload;
 
@@ -79,36 +73,56 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   return { html: htmlContent, title };
 });
 
-/**
- * Get macro configuration
- */
-resolver.define("getConfig", async ({ context }) => {
-  const config = context.extension.config || {};
-  return {
-    attachmentId: config.attachmentId || null,
-    height: config.height || 0,
-    sandboxPermissions: config.sandboxPermissions || "allow-scripts",
-  };
+resolver.define("getSavedAttachment", async ({ payload, context }) => {
+  const macroId = context.extension.macro?.id || context.extension.content.id;
+  const saved = await kvs.get(`macro-${macroId}`);
+  return saved || null;
 });
 
-resolver.define("getAttachmentDownloadUrl", async ({ payload, context }) => {
-  const { attachmentId } = payload;
-  const siteUrl = context.siteUrl || "https://tmobi.atlassian.net";
+resolver.define("saveSelectedAttachment", async ({ payload, context }) => {
+  const { attachmentId, title } = payload;
+  const macroId = context.extension.macro?.id || context.extension.content.id;
+  await kvs.set(`macro-${macroId}`, { attachmentId, title });
+  return { success: true };
+});
 
-  const metaResponse = await api.asUser().requestConfluence(
-    route`/wiki/api/v2/attachments/${attachmentId}`,
-    { headers: { Accept: "application/json" } }
+resolver.define("uploadAttachment", async ({ payload, context }) => {
+  const { filename, contentBase64 } = payload;
+  const pageId = context.extension.content.id;
+
+  const boundary = "----FormBoundary" + Math.random().toString(36).slice(2);
+  const binaryContent = Buffer.from(contentBase64, "base64");
+
+  const body = Buffer.concat([
+    Buffer.from(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="file"; filename="${filename}"\r\n` +
+      `Content-Type: text/html\r\n\r\n`
+    ),
+    binaryContent,
+    Buffer.from(`\r\n--${boundary}--\r\n`),
+  ]);
+
+  const response = await api.asUser().requestConfluence(
+    route`/wiki/rest/api/content/${pageId}/child/attachment`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        "X-Atlassian-Token": "nocheck",
+      },
+      body,
+    }
   );
 
-  if (!metaResponse.ok) {
-    return null;
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Upload failed: ${response.status} - ${text}`);
   }
 
-  const meta = await metaResponse.json();
-  const downloadLink = meta.downloadLink;
-  if (!downloadLink) return null;
-
-  return `${siteUrl}/wiki${downloadLink}`;
+  const data = await response.json();
+  const att = data.results?.[0] || data;
+  return { id: att.id, title: att.title };
 });
 
 export const handler = resolver.getDefinitions();

@@ -24,6 +24,10 @@ permissions:
     - read:confluence-content.all
     - read:confluence-content.summary
     - read:attachment:confluence
+    - write:confluence-content
+    - write:confluence-file
+    - write:attachment:confluence
+    - storage:app
   external:
     fetch:
       backend:
