@@ -39,10 +39,18 @@ permissions:
       - "https://cdn.jsdelivr.net"
       - "https://cdnjs.cloudflare.com"
       - "https://unpkg.com"
+      - "https://d3js.org"
+      - "https://cdn.plot.ly"
+      - "https://cdn.datatables.net"
+      - "https://code.highcharts.com"
+      - "https://www.gstatic.com"
     styles:
       - "https://cdn.jsdelivr.net"
       - "https://cdnjs.cloudflare.com"
       - "https://unpkg.com"
+      - "https://d3js.org"
+      - "https://cdn.datatables.net"
+      - "https://fonts.googleapis.com"
     fetch:
       backend:
         - address: "*.atlassian.net"

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { invoke, view } from "@forge/bridge";
 
 const MIN_HEIGHT = 80;
-const MAX_HEIGHT = 400;
+const DEFAULT_HEIGHT = 400;
 
 function App() {
   const [htmlContent, setHtmlContent] = useState(null);
@@ -54,7 +54,7 @@ function App() {
       if (event.data && event.data.type === "htmlRendererHeight" && event.data.height > 0) {
         contentHeightRef.current = event.data.height;
         if (!heightInput) {
-          setIframeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, event.data.height)));
+          setIframeHeight(Math.max(MIN_HEIGHT, event.data.height));
         }
       }
     };
@@ -70,15 +70,14 @@ function App() {
     return html + heightScript;
   };
 
-  const downloadHtml = () => {
-    if (!htmlContent) return;
-    const blob = new Blob([htmlContent], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = attachments.find(att => att.id === selectedAttachment)?.title || "page.html";
-    a.click();
-    URL.revokeObjectURL(url);
+  const openInNewTab = () => {
+    if (!htmlContent || !iframeRef.current) return;
+    try {
+      const innerWin = iframeRef.current.contentWindow;
+      const blob = new Blob([htmlContent], { type: "text/html" });
+      const url = innerWin.URL.createObjectURL(blob);
+      innerWin.open(url, "_blank");
+    } catch (e) {}
   };
 
   const loadContent = async (attachmentId) => {
@@ -115,15 +114,15 @@ function App() {
     setHeightInput(val);
     const num = parseInt(val, 10);
     if (!isNaN(num) && num >= MIN_HEIGHT) {
-      setIframeHeight(Math.min(MAX_HEIGHT, num));
+      setIframeHeight(num);
     } else if (val === "" || val === "0") {
-      setIframeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, contentHeightRef.current)));
+      setIframeHeight(Math.max(MIN_HEIGHT, contentHeightRef.current || DEFAULT_HEIGHT));
     }
   };
 
   const handleHeightBlur = async () => {
     const num = parseInt(heightInput, 10);
-    const finalHeight = (!isNaN(num) && num >= MIN_HEIGHT) ? Math.min(MAX_HEIGHT, num) : null;
+    const finalHeight = (!isNaN(num) && num >= MIN_HEIGHT) ? num : null;
     if (selectedAttachment) {
       const att = attachments.find((a) => a.id === selectedAttachment);
       await saveSelection(selectedAttachment, att?.title || "", finalHeight);
@@ -230,12 +229,12 @@ function App() {
             onBlur={handleHeightBlur}
             placeholder="auto"
             min={MIN_HEIGHT}
-            max={MAX_HEIGHT}
+            max={9999}
             style={styles.heightInput}
           />
           <span style={styles.heightUnit}>px</span>
           {htmlContent && (
-            <button onClick={downloadHtml} style={styles.openBtn}>⬇ Download</button>
+            <button onClick={openInNewTab} style={styles.openBtn}>↗ Full</button>
           )}
         </div>
       )}
@@ -254,7 +253,6 @@ function App() {
           style={{
             ...styles.iframe,
             height: iframeHeight + "px",
-            maxHeight: MAX_HEIGHT + "px",
             borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
           }}
           title="HTML Attachment"
