@@ -1,0 +1,66 @@
+modules:
+  macro:
+    - key: html-attachment-renderer
+      title: HTML Attachment Renderer
+      description: Renders HTML attachments inline with full JS/CSS support
+      resource: main
+      resolver:
+        function: resolver
+      icon: resource:icons;icon.svg
+  function:
+    - key: resolver
+      handler: index.handler
+
+resources:
+  - key: main
+    path: static/build
+  - key: icons
+    path: static/images
+
+app:
+  id: ari:cloud:ecosystem::app/YOUR_APP_ID_HERE
+  runtime:
+    name: nodejs22.x
+
+permissions:
+  scopes:
+    - read:confluence-content.all
+    - read:confluence-content.summary
+    - read:attachment:confluence
+    - write:confluence-content
+    - write:confluence-file
+    - write:attachment:confluence
+    - storage:app
+  content:
+    scripts:
+      - "unsafe-inline"
+      - "unsafe-eval"
+    styles:
+      - "unsafe-inline"
+  external:
+    scripts:
+      - "https://cdn.jsdelivr.net"
+      - "https://cdnjs.cloudflare.com"
+      - "https://unpkg.com"
+      - "https://d3js.org"
+      - "https://cdn.plot.ly"
+      - "https://cdn.datatables.net"
+      - "https://code.highcharts.com"
+      - "https://www.gstatic.com"
+      - "https://ajax.googleapis.com"
+      - "https://code.jquery.com"
+      - "https://cdn.tailwindcss.com"
+      - "https://cdn.bokeh.org"
+      - "https://cdn.rawgit.com"
+      - "https://raw.githubusercontent.com"
+    styles:
+      - "https://cdn.jsdelivr.net"
+      - "https://cdnjs.cloudflare.com"
+      - "https://unpkg.com"
+      - "https://d3js.org"
+      - "https://cdn.datatables.net"
+      - "https://fonts.googleapis.com"
+      - "https://cdn.tailwindcss.com"
+    fetch:
+      backend:
+        - address: "*.atlassian.net"
