@@ -1,0 +1,25 @@
+static/src/App.jsx
+  s_51aed462cbc2cb::t_3fdd454cd644cc 1
+  s_51aed462cbc2cb::t_33fa259395e0e8 13-14,24,74,78,95,142-152,212
+  s_51aed462cbc2cb::t_25b806596de270 5
+  s_51aed462cbc2cb::t_2cca93666418b6 61,63-73,77,82-90,93-94
+  s_51aed462cbc2cb::t_708a36626785a8 116-117
+  s_51aed462cbc2cb::t_febc8994237643 76
+  s_51aed462cbc2cb::t_d531e2e999b4e6 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "eaa9c30fc35070dd5a08b345fd06eb42671f42ac",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
