@@ -99,36 +99,70 @@ forge-html-renderer/
 
 - Node.js 22+
 - [Forge CLI](https://developer.atlassian.com/platform/forge/getting-started/): `npm install -g @forge/cli`
-- Atlassian account with site-admin access
+- Atlassian account (any Confluence Cloud site)
+- Site admin access (required to install apps)
 
-### First-Time Setup
+### Step 1: Clone and Install
 
 ```bash
-# Install Forge CLI
-npm install -g @forge/cli
+git clone https://github.com/leecoder/forge-html-renderer.git
+cd forge-html-renderer
+npm install
+cd static && npm install && cd ..
+```
 
-# Login
+### Step 2: Forge CLI Login
+
+Generate an API token at https://id.atlassian.com/manage-profile/security/api-tokens
+
+```bash
+npm install -g @forge/cli
 forge settings set usage-analytics false
 forge login --email YOUR_EMAIL --token YOUR_API_TOKEN --non-interactive
+```
 
-# Register the app (creates app ID)
+> **Corporate proxy (self-signed cert)?** Add `export NODE_TLS_REJECT_UNAUTHORIZED=0` before running forge commands.
+
+### Step 3: Register the App
+
+```bash
 forge register
+```
 
-# Install dependencies
-npm install
-cd static && npm install && npm run build && cd ..
+This creates a Developer Space (if needed) and updates `manifest.yml` with your app ID.
 
-# Deploy
+### Step 4: Build and Deploy
+
+```bash
+cd static && npm run build && cd ..
 forge deploy --environment production
+```
 
-# Install on your site
+### Step 5: Install on Your Confluence Site
+
+```bash
 forge install --site YOUR_SITE.atlassian.net --product confluence --environment production
 ```
+
+If you don't have site-admin access, generate an installation link:
+
+1. Go to https://developer.atlassian.com/console
+2. Find your app → Distribution → Edit → Set to "Sharing"
+3. Check "Confluence" under installation targets
+4. Copy the installation link and share with your site admin
+
+### Step 6: Distribute Internally (Optional)
+
+To allow other Confluence sites to install:
+
+1. Deploy to production: `forge deploy --environment production`
+2. Developer Console → Distribution → Set "Sharing" status
+3. Share the installation link with other site admins
 
 ### Subsequent Deployments
 
 ```bash
-cd static && npm install && npm run build && cd ..
+cd static && npm run build && cd ..
 forge deploy --environment production
 ```
 
