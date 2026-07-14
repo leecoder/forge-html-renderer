@@ -39,3 +39,4 @@ jobs:
         run: |
           forge settings set usage-analytics false
           forge deploy --environment production --non-interactive
+          forge install --upgrade --site tmobi.atlassian.net --product confluence --environment production --non-interactive
