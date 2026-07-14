@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { invoke, view } from "@forge/bridge";
 
 const MIN_HEIGHT = 80;
+const MAX_HEIGHT = 400;
 
 function App() {
   const [htmlContent, setHtmlContent] = useState(null);
@@ -10,12 +11,14 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [iframeHeight, setIframeHeight] = useState(200);
-  const [sandboxFlags] = useState("allow-scripts allow-same-origin");
-  const [showToolbar, setShowToolbar] = useState(false);
+  const [heightInput, setHeightInput] = useState("");
+  const [sandboxFlags] = useState("allow-scripts allow-same-origin allow-popups");
+  const [showToolbar, setShowToolbar] = useState(true);
   const [uploading, setUploading] = useState(false);
 
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
+  const contentHeightRef = useRef(0);
 
   useEffect(() => {
     async function init() {
@@ -24,19 +27,21 @@ function App() {
         const atts = await invoke("getAttachments");
         setAttachments(atts);
 
+        if (saved?.height) {
+          setIframeHeight(saved.height);
+          setHeightInput(String(saved.height));
+        }
+
         if (saved?.attachmentId) {
           setSelectedAttachment(saved.attachmentId);
           await loadContent(saved.attachmentId);
         } else if (atts.length === 1) {
           setSelectedAttachment(atts[0].id);
-          await saveSelection(atts[0].id, atts[0].title);
+          await saveSelection(atts[0].id, atts[0].title, null);
           await loadContent(atts[0].id);
-        } else {
-          setShowToolbar(true);
         }
       } catch (err) {
         setError(err.message);
-        setShowToolbar(true);
       } finally {
         setLoading(false);
       }
@@ -47,19 +52,33 @@ function App() {
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data && event.data.type === "htmlRendererHeight" && event.data.height > 0) {
-        setIframeHeight(Math.max(MIN_HEIGHT, event.data.height));
+        contentHeightRef.current = event.data.height;
+        if (!heightInput) {
+          setIframeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, event.data.height)));
+        }
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [heightInput]);
 
   const getEnhancedHtml = (html) => {
-    const heightScript = `<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()</script>`;
+    const heightScript = '<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()<\/script>';
     if (html.includes("</body>")) {
-      return html.replace("</body>", `${heightScript}</body>`);
+      return html.replace("</body>", heightScript + "</body>");
     }
     return html + heightScript;
+  };
+
+  const downloadHtml = () => {
+    if (!htmlContent) return;
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = attachments.find(att => att.id === selectedAttachment)?.title || "page.html";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const loadContent = async (attachmentId) => {
@@ -69,14 +88,14 @@ function App() {
       const result = await invoke("getAttachmentContent", { attachmentId });
       setHtmlContent(result.html);
     } catch (err) {
-      setError(`Failed to load attachment: ${err.message}`);
+      setError("Failed to load attachment: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveSelection = async (attachmentId, title) => {
-    await invoke("saveSelectedAttachment", { attachmentId, title });
+  const saveSelection = async (attachmentId, title, height) => {
+    await invoke("saveSelectedAttachment", { attachmentId, title, height });
   };
 
   const handleAttachmentChange = async (e) => {
@@ -84,10 +103,30 @@ function App() {
     setSelectedAttachment(attId);
     if (attId) {
       const att = attachments.find((a) => a.id === attId);
-      await saveSelection(attId, att?.title || "");
+      await saveSelection(attId, att?.title || "", null);
       await loadContent(attId);
     } else {
       setHtmlContent(null);
+    }
+  };
+
+  const handleHeightChange = (e) => {
+    const val = e.target.value;
+    setHeightInput(val);
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= MIN_HEIGHT) {
+      setIframeHeight(Math.min(MAX_HEIGHT, num));
+    } else if (val === "" || val === "0") {
+      setIframeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, contentHeightRef.current)));
+    }
+  };
+
+  const handleHeightBlur = async () => {
+    const num = parseInt(heightInput, 10);
+    const finalHeight = (!isNaN(num) && num >= MIN_HEIGHT) ? Math.min(MAX_HEIGHT, num) : null;
+    if (selectedAttachment) {
+      const att = attachments.find((a) => a.id === selectedAttachment);
+      await saveSelection(selectedAttachment, att?.title || "", finalHeight);
     }
   };
 
@@ -111,14 +150,14 @@ function App() {
       });
 
       setSelectedAttachment(result.id);
-      await saveSelection(result.id, result.title);
+      await saveSelection(result.id, result.title, null);
 
       const atts = await invoke("getAttachments");
       setAttachments(atts);
 
       await loadContent(result.id);
     } catch (err) {
-      setError(`Upload failed: ${err.message}`);
+      setError("Upload failed: " + err.message);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -182,6 +221,22 @@ function App() {
             />
             {uploading ? "Uploading..." : "Upload HTML"}
           </label>
+          <span style={styles.separator} />
+          <label style={styles.heightLabel}>H:</label>
+          <input
+            type="number"
+            value={heightInput}
+            onChange={handleHeightChange}
+            onBlur={handleHeightBlur}
+            placeholder="auto"
+            min={MIN_HEIGHT}
+            max={MAX_HEIGHT}
+            style={styles.heightInput}
+          />
+          <span style={styles.heightUnit}>px</span>
+          {htmlContent && (
+            <button onClick={downloadHtml} style={styles.openBtn}>⬇ Download</button>
+          )}
         </div>
       )}
 
@@ -198,7 +253,8 @@ function App() {
           sandbox={sandboxFlags}
           style={{
             ...styles.iframe,
-            height: `${iframeHeight}px`,
+            height: iframeHeight + "px",
+            maxHeight: MAX_HEIGHT + "px",
             borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
           }}
           title="HTML Attachment"
@@ -252,7 +308,7 @@ const styles = {
     borderRadius: "3px",
     border: "1px solid #DFE1E6",
     backgroundColor: "#fff",
-    maxWidth: "250px",
+    maxWidth: "200px",
   },
   uploadLabel: {
     padding: "4px 10px",
@@ -267,10 +323,40 @@ const styles = {
   fileInput: {
     display: "none",
   },
+  separator: {
+    flex: 1,
+  },
+  heightLabel: {
+    fontSize: "12px",
+    color: "#6B778C",
+  },
+  heightInput: {
+    width: "55px",
+    padding: "3px 6px",
+    fontSize: "12px",
+    border: "1px solid #DFE1E6",
+    borderRadius: "3px",
+    textAlign: "right",
+  },
+  heightUnit: {
+    fontSize: "11px",
+    color: "#6B778C",
+  },
+  openBtn: {
+    padding: "3px 8px",
+    fontSize: "11px",
+    color: "#0052CC",
+    backgroundColor: "transparent",
+    border: "1px solid #0052CC",
+    borderRadius: "3px",
+    cursor: "pointer",
+    marginLeft: "4px",
+  },
   iframe: {
     width: "100%",
     border: "1px solid #DFE1E6",
     display: "block",
+    overflow: "auto",
   },
 };
 

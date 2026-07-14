@@ -80,9 +80,11 @@ resolver.define("getSavedAttachment", async ({ payload, context }) => {
 });
 
 resolver.define("saveSelectedAttachment", async ({ payload, context }) => {
-  const { attachmentId, title } = payload;
+  const { attachmentId, title, height } = payload;
   const macroId = context.extension.macro?.id || context.extension.content.id;
-  await kvs.set(`macro-${macroId}`, { attachmentId, title });
+  const data = { attachmentId, title };
+  if (height) data.height = height;
+  await kvs.set(`macro-${macroId}`, data);
   return { success: true };
 });
 
