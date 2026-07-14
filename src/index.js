@@ -74,14 +74,14 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
 });
 
 resolver.define("getSavedAttachment", async ({ payload, context }) => {
-  const macroId = context.extension.macro?.id || context.extension.content.id;
+  const macroId = context.extension.macro?.id || context.localId || context.extension.content.id;
   const saved = await kvs.get(`macro-${macroId}`);
   return saved || null;
 });
 
 resolver.define("saveSelectedAttachment", async ({ payload, context }) => {
   const { attachmentId, title, height } = payload;
-  const macroId = context.extension.macro?.id || context.extension.content.id;
+  const macroId = context.extension.macro?.id || context.localId || context.extension.content.id;
   const data = { attachmentId, title };
   if (height) data.height = height;
   await kvs.set(`macro-${macroId}`, data);
@@ -125,6 +125,12 @@ resolver.define("uploadAttachment", async ({ payload, context }) => {
   const data = await response.json();
   const att = data.results?.[0] || data;
   return { id: att.id, title: att.title };
+});
+
+resolver.define("getFullViewUrl", async ({ payload, context }) => {
+  const { attachmentId } = payload;
+  const pageId = context.extension.content.id;
+  return `/wiki/rest/api/content/${pageId}/child/attachment/${attachmentId}/download`;
 });
 
 export const handler = resolver.getDefinitions();

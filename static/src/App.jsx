@@ -54,7 +54,8 @@ function App() {
       if (event.data && event.data.type === "htmlRendererHeight" && event.data.height > 0) {
         contentHeightRef.current = event.data.height;
         if (!heightInput) {
-          setIframeHeight(Math.max(MIN_HEIGHT, event.data.height));
+          const autoHeight = Math.max(MIN_HEIGHT, event.data.height);
+          setIframeHeight(autoHeight > DEFAULT_HEIGHT ? DEFAULT_HEIGHT : autoHeight);
         }
       }
     };
@@ -68,16 +69,6 @@ function App() {
       return html.replace("</body>", heightScript + "</body>");
     }
     return html + heightScript;
-  };
-
-  const openInNewTab = () => {
-    if (!htmlContent || !iframeRef.current) return;
-    try {
-      const innerWin = iframeRef.current.contentWindow;
-      const blob = new Blob([htmlContent], { type: "text/html" });
-      const url = innerWin.URL.createObjectURL(blob);
-      innerWin.open(url, "_blank");
-    } catch (e) {}
   };
 
   const loadContent = async (attachmentId) => {
@@ -233,9 +224,6 @@ function App() {
             style={styles.heightInput}
           />
           <span style={styles.heightUnit}>px</span>
-          {htmlContent && (
-            <button onClick={openInNewTab} style={styles.openBtn}>↗ Full</button>
-          )}
         </div>
       )}
 
@@ -339,16 +327,6 @@ const styles = {
   heightUnit: {
     fontSize: "11px",
     color: "#6B778C",
-  },
-  openBtn: {
-    padding: "3px 8px",
-    fontSize: "11px",
-    color: "#0052CC",
-    backgroundColor: "transparent",
-    border: "1px solid #0052CC",
-    borderRadius: "3px",
-    cursor: "pointer",
-    marginLeft: "4px",
   },
   iframe: {
     width: "100%",
