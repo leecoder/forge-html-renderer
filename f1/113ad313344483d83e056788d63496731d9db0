@@ -1,0 +1,20 @@
+.github/workflows/deploy.yml
+  s_51aed462cbc2cb::t_8a1aeaa58a4356 7-9
+  s_51aed462cbc2cb::t_890b1a13f8542d 12,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "f1113ad313344483d83e056788d63496731d9db0",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
