@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { invoke } from "@forge/bridge";
+import { invoke, view } from "@forge/bridge";
 
 /**
  * Configuration panel component shown in the macro editor.
@@ -11,6 +11,18 @@ function Config({ onSave }) {
   const [height, setHeight] = useState(0);
   const [sandboxPermissions, setSandboxPermissions] = useState("allow-scripts");
   const [loading, setLoading] = useState(true);
+
+  const handleSubmit = () => {
+    view.submit({
+      attachmentId: selectedId,
+      height,
+      sandboxPermissions,
+    });
+  };
+
+  const handleClose = () => {
+    view.close();
+  };
 
   useEffect(() => {
     async function load() {
@@ -104,6 +116,15 @@ function Config({ onSave }) {
           Controls what the embedded HTML is allowed to do. Enable only what's needed.
         </div>
       </div>
+
+      <div style={styles.buttonRow}>
+        <button onClick={handleSubmit} style={styles.submitButton}>
+          Save
+        </button>
+        <button onClick={handleClose} style={styles.cancelButton}>
+          Close
+        </button>
+      </div>
     </div>
   );
 }
@@ -187,6 +208,31 @@ const styles = {
   },
   checkboxLabel: {
     color: "#172B4D",
+  },
+  buttonRow: {
+    display: "flex",
+    gap: "8px",
+    marginTop: "8px",
+  },
+  submitButton: {
+    padding: "8px 16px",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#fff",
+    backgroundColor: "#0052CC",
+    border: "none",
+    borderRadius: "3px",
+    cursor: "pointer",
+  },
+  cancelButton: {
+    padding: "8px 16px",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#172B4D",
+    backgroundColor: "#F4F5F7",
+    border: "1px solid #DFE1E6",
+    borderRadius: "3px",
+    cursor: "pointer",
   },
 };
 
