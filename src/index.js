@@ -4,13 +4,13 @@ import api, { route } from "@forge/api";
 const resolver = new Resolver();
 
 /**
- * List all HTML attachments on the current page
+ * List all HTML attachments on the current page (v2 API)
  */
 resolver.define("getAttachments", async ({ payload, context }) => {
   const pageId = context.extension.content.id;
 
   const response = await api.asUser().requestConfluence(
-    route`/wiki/rest/api/content/${pageId}/child/attachment?expand=version,metadata.mediaType&limit=100`,
+    route`/wiki/api/v2/pages/${pageId}/attachments?limit=100&status=current`,
     { headers: { Accept: "application/json" } }
   );
 
@@ -23,7 +23,7 @@ resolver.define("getAttachments", async ({ payload, context }) => {
 
   // Filter to HTML files only
   const htmlAttachments = data.results.filter((att) => {
-    const mediaType = att.metadata?.mediaType || "";
+    const mediaType = att.mediaType || "";
     const filename = att.title || "";
     return (
       mediaType === "text/html" ||
@@ -36,31 +36,30 @@ resolver.define("getAttachments", async ({ payload, context }) => {
   return htmlAttachments.map((att) => ({
     id: att.id,
     title: att.title,
-    mediaType: att.metadata?.mediaType,
-    downloadUrl: att._links?.download,
+    mediaType: att.mediaType,
+    downloadUrl: att.downloadLink,
     version: att.version?.number,
   }));
 });
 
 /**
- * Fetch the HTML content of a specific attachment
+ * Fetch the HTML content of a specific attachment (v2 API)
  */
 resolver.define("getAttachmentContent", async ({ payload, context }) => {
   const { attachmentId } = payload;
-  const pageId = context.extension.content.id;
 
-  // First get the attachment metadata to find the download link
   const metaResponse = await api.asUser().requestConfluence(
-    route`/wiki/rest/api/content/${attachmentId}?expand=_links`,
+    route`/wiki/api/v2/attachments/${attachmentId}`,
     { headers: { Accept: "application/json" } }
   );
 
   if (!metaResponse.ok) {
-    throw new Error(`Failed to fetch attachment metadata: ${metaResponse.status}`);
+    const text = await metaResponse.text();
+    throw new Error(`Failed to fetch attachment metadata: ${metaResponse.status} - ${text}`);
   }
 
   const meta = await metaResponse.json();
-  const downloadPath = meta._links?.download;
+  const downloadPath = meta.downloadLink;
 
   if (!downloadPath) {
     throw new Error("Download link not found for attachment");

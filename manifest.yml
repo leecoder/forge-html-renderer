@@ -27,7 +27,8 @@ permissions:
   scopes:
     - read:confluence-content.all
     - read:confluence-content.summary
+    - read:attachment:confluence
   external:
     fetch:
       backend:
-        - "*.atlassian.net"
+        - address: "*.atlassian.net"
