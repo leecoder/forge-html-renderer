@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { invoke, view } from "@forge/bridge";
+import { invoke, view, router } from "@forge/bridge";
 
 const MIN_HEIGHT = 100;
 const MAX_HEIGHT = 400;
@@ -65,7 +65,7 @@ function App() {
   const openInNewWindow = async () => {
     const url = await invoke("getAttachmentDownloadUrl", { attachmentId: selectedAttachment });
     if (url) {
-      window.open(url, "_blank");
+      router.open(url);
     }
   };
 
