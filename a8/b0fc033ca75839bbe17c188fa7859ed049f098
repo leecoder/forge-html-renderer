@@ -1,0 +1,30 @@
+src/index.js
+  s_51aed462cbc2cb::t_f08eed09b4264d 7,13,26,39-40,46,52,57-58,62
+manifest.yml
+  s_51aed462cbc2cb::t_fc772cfa527388 30
+  s_b9024a7748b4ef::t_f990e7502770d0 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "a8b0fc033ca75839bbe17c188fa7859ed049f098",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    },
+    "s_b9024a7748b4ef": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
