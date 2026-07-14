@@ -1,0 +1,19 @@
+README.md
+  s_51aed462cbc2cb::t_c10fd0e94655e2 102-103,105,108-112,114-119,122-124,126-128,130,132-134,136-137,139-141,143,147-161,165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "af29bac3e432d7832c8f9a4ae4e09fa524ab237e",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
