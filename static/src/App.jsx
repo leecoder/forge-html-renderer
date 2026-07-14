@@ -22,9 +22,7 @@ function App() {
     async function init() {
       try {
         const context = await view.getContext();
-        const mode = context?.extension?.renderMode;
-        const isInEditor = window.location.href.includes("/edit-v2/") || window.location.href.includes("/edit/");
-        setIsEditMode(isInEditor);
+        setIsEditMode(true);
 
         const saved = await invoke("getSavedAttachment");
         const atts = await invoke("getAttachments");
