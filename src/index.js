@@ -91,4 +91,24 @@ resolver.define("getConfig", async ({ context }) => {
   };
 });
 
+resolver.define("getAttachmentDownloadUrl", async ({ payload, context }) => {
+  const { attachmentId } = payload;
+  const siteUrl = context.siteUrl || "https://tmobi.atlassian.net";
+
+  const metaResponse = await api.asUser().requestConfluence(
+    route`/wiki/api/v2/attachments/${attachmentId}`,
+    { headers: { Accept: "application/json" } }
+  );
+
+  if (!metaResponse.ok) {
+    return null;
+  }
+
+  const meta = await metaResponse.json();
+  const downloadLink = meta.downloadLink;
+  if (!downloadLink) return null;
+
+  return `${siteUrl}/wiki${downloadLink}`;
+});
+
 export const handler = resolver.getDefinitions();

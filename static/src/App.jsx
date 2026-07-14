@@ -12,6 +12,7 @@ function App() {
   const [error, setError] = useState(null);
   const [iframeHeight, setIframeHeight] = useState(null);
   const [sandboxFlags] = useState("allow-scripts allow-same-origin");
+  const [downloadUrl, setDownloadUrl] = useState(null);
 
   const iframeRef = useRef(null);
 
@@ -23,6 +24,7 @@ function App() {
 
         if (atts.length === 1) {
           setSelectedAttachment(atts[0].id);
+          setDownloadUrl(atts[0].downloadUrl);
           await loadContent(atts[0].id);
         }
       } catch (err) {
@@ -51,9 +53,19 @@ function App() {
     const attId = e.target.value;
     setSelectedAttachment(attId);
     if (attId) {
+      const att = attachments.find((a) => a.id === attId);
+      setDownloadUrl(att?.downloadUrl || null);
       await loadContent(attId);
     } else {
       setHtmlContent(null);
+      setDownloadUrl(null);
+    }
+  };
+
+  const openInNewWindow = async () => {
+    const url = await invoke("getAttachmentDownloadUrl", { attachmentId: selectedAttachment });
+    if (url) {
+      window.open(url, "_blank");
     }
   };
 
@@ -139,17 +151,24 @@ function App() {
       )}
 
       {htmlContent && (
-        <iframe
-          ref={iframeRef}
-          srcDoc={htmlContent}
-          sandbox={sandboxFlags}
-          style={{
-            ...styles.iframe,
-            height: iframeHeight ? `${iframeHeight}px` : `${MAX_HEIGHT}px`,
-            maxHeight: `${MAX_HEIGHT}px`,
-          }}
-          title="HTML Attachment"
-        />
+        <>
+          <div style={styles.toolbar}>
+            <button onClick={openInNewWindow} style={styles.openButton}>
+              ↗ Open in new window
+            </button>
+          </div>
+          <iframe
+            ref={iframeRef}
+            srcDoc={htmlContent}
+            sandbox={sandboxFlags}
+            style={{
+              ...styles.iframe,
+              height: iframeHeight ? `${iframeHeight}px` : `${MAX_HEIGHT}px`,
+              maxHeight: `${MAX_HEIGHT}px`,
+            }}
+            title="HTML Attachment"
+          />
+        </>
       )}
     </div>
   );
@@ -207,9 +226,28 @@ const styles = {
   iframe: {
     width: "100%",
     border: "1px solid #DFE1E6",
-    borderRadius: "3px",
+    borderRadius: "0 0 3px 3px",
     display: "block",
     overflow: "auto",
+  },
+  toolbar: {
+    display: "flex",
+    justifyContent: "flex-end",
+    padding: "4px 8px",
+    backgroundColor: "#F4F5F7",
+    borderRadius: "3px 3px 0 0",
+    border: "1px solid #DFE1E6",
+    borderBottom: "none",
+  },
+  openButton: {
+    padding: "4px 10px",
+    fontSize: "12px",
+    color: "#0052CC",
+    backgroundColor: "transparent",
+    border: "1px solid #0052CC",
+    borderRadius: "3px",
+    cursor: "pointer",
+    fontWeight: 500,
   },
 };
 
