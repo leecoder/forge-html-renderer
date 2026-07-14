@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { invoke, view } from "@forge/bridge";
 
-const MIN_HEIGHT = 100;
-const MAX_HEIGHT = 400;
+const MIN_HEIGHT = 80;
 
 function App() {
   const [htmlContent, setHtmlContent] = useState(null);
@@ -10,9 +9,9 @@ function App() {
   const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [iframeHeight, setIframeHeight] = useState(null);
+  const [iframeHeight, setIframeHeight] = useState(200);
   const [sandboxFlags] = useState("allow-scripts allow-same-origin");
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [showToolbar, setShowToolbar] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const iframeRef = useRef(null);
@@ -21,9 +20,6 @@ function App() {
   useEffect(() => {
     async function init() {
       try {
-        const context = await view.getContext();
-        setIsEditMode(true);
-
         const saved = await invoke("getSavedAttachment");
         const atts = await invoke("getAttachments");
         setAttachments(atts);
@@ -35,15 +31,36 @@ function App() {
           setSelectedAttachment(atts[0].id);
           await saveSelection(atts[0].id, atts[0].title);
           await loadContent(atts[0].id);
+        } else {
+          setShowToolbar(true);
         }
       } catch (err) {
         setError(err.message);
+        setShowToolbar(true);
       } finally {
         setLoading(false);
       }
     }
     init();
   }, []);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data && event.data.type === "htmlRendererHeight" && event.data.height > 0) {
+        setIframeHeight(Math.max(MIN_HEIGHT, event.data.height));
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const getEnhancedHtml = (html) => {
+    const heightScript = `<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()</script>`;
+    if (html.includes("</body>")) {
+      return html.replace("</body>", `${heightScript}</body>`);
+    }
+    return html + heightScript;
+  };
 
   const loadContent = async (attachmentId) => {
     try {
@@ -108,47 +125,10 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (!htmlContent || !iframeRef.current) return;
-
-    const measureHeight = () => {
-      try {
-        const doc = iframeRef.current.contentDocument;
-        if (doc && doc.body) {
-          const height = Math.max(
-            doc.body.scrollHeight,
-            doc.body.offsetHeight,
-            doc.documentElement.scrollHeight,
-            doc.documentElement.offsetHeight
-          );
-          if (height > 0) {
-            setIframeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height + 20)));
-          }
-        }
-      } catch (e) {
-        setIframeHeight(MAX_HEIGHT);
-      }
-    };
-
-    const iframe = iframeRef.current;
-    const onLoad = () => {
-      measureHeight();
-      let checks = 0;
-      const interval = setInterval(() => {
-        measureHeight();
-        checks++;
-        if (checks > 10) clearInterval(interval);
-      }, 500);
-    };
-
-    iframe.addEventListener("load", onLoad);
-    return () => iframe.removeEventListener("load", onLoad);
-  }, [htmlContent]);
-
   if (loading && !htmlContent) {
     return (
       <div style={styles.container}>
-        <div style={styles.loading}>Loading HTML attachment...</div>
+        <div style={styles.loading}>Loading...</div>
       </div>
     );
   }
@@ -156,30 +136,26 @@ function App() {
   if (error) {
     return (
       <div style={styles.container}>
-        <div style={styles.error}>
-          <strong>Error:</strong> {error}
+        <div style={styles.error}>{error}</div>
+        <div style={styles.toolbar}>
+          <label style={styles.uploadLabel}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".html,.htm"
+              onChange={handleFileUpload}
+              style={styles.fileInput}
+            />
+            Upload HTML
+          </label>
         </div>
-        {isEditMode && (
-          <div style={styles.toolbar}>
-            <label style={styles.uploadLabel}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".html,.htm"
-                onChange={handleFileUpload}
-                style={styles.fileInput}
-              />
-              📎 Upload HTML
-            </label>
-          </div>
-        )}
       </div>
     );
   }
 
   return (
     <div style={styles.container}>
-      {isEditMode && (
+      {showToolbar && (
         <div style={styles.toolbar}>
           {attachments.length > 1 && (
             <select
@@ -204,27 +180,26 @@ function App() {
               style={styles.fileInput}
               disabled={uploading}
             />
-            {uploading ? "Uploading..." : "📎 Upload HTML"}
+            {uploading ? "Uploading..." : "Upload HTML"}
           </label>
         </div>
       )}
 
       {!htmlContent && !loading && (
         <div style={styles.empty}>
-          No HTML attachment selected.
-          {isEditMode ? " Upload or select an HTML file above." : ""}
+          No HTML attachment selected. Upload or select an HTML file.
         </div>
       )}
 
       {htmlContent && (
         <iframe
           ref={iframeRef}
-          srcDoc={htmlContent}
+          srcDoc={getEnhancedHtml(htmlContent)}
           sandbox={sandboxFlags}
           style={{
             ...styles.iframe,
-            height: iframeHeight ? `${iframeHeight}px` : `${MAX_HEIGHT}px`,
-            maxHeight: `${MAX_HEIGHT}px`,
+            height: `${iframeHeight}px`,
+            borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
           }}
           title="HTML Attachment"
         />
@@ -239,7 +214,7 @@ const styles = {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   loading: {
-    padding: "20px",
+    padding: "16px",
     textAlign: "center",
     color: "#6B778C",
     fontSize: "14px",
@@ -295,9 +270,7 @@ const styles = {
   iframe: {
     width: "100%",
     border: "1px solid #DFE1E6",
-    borderRadius: "0 0 3px 3px",
     display: "block",
-    overflow: "auto",
   },
 };
 
