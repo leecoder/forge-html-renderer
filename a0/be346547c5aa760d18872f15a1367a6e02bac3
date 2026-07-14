@@ -1,0 +1,22 @@
+static/src/Config.jsx
+  s_51aed462cbc2cb::t_6d54150af7ebb5 15-26
+  s_51aed462cbc2cb::t_9e8363eb1e24ef 119-127
+  s_51aed462cbc2cb::t_406b822513a8a8 2
+  s_51aed462cbc2cb::t_0253ae4dd38561 212-236
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "a0be346547c5aa760d18872f15a1367a6e02bac3",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
