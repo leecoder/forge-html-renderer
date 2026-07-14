@@ -11,6 +11,7 @@ function Config({ onSave }) {
   const [height, setHeight] = useState(0);
   const [sandboxPermissions, setSandboxPermissions] = useState("allow-scripts");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleSubmit = () => {
     view.submit({
@@ -35,7 +36,7 @@ function Config({ onSave }) {
         if (cfg.height) setHeight(cfg.height);
         if (cfg.sandboxPermissions) setSandboxPermissions(cfg.sandboxPermissions);
       } catch (err) {
-        console.error("Config load error:", err);
+        setError(err.message || "Failed to load configuration");
       } finally {
         setLoading(false);
       }
@@ -45,6 +46,19 @@ function Config({ onSave }) {
 
   if (loading) {
     return <div style={styles.loading}>Loading attachments...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.error}>{error}</div>
+        <div style={styles.buttonRow}>
+          <button onClick={handleClose} style={styles.cancelButton}>
+            Close
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -233,6 +247,14 @@ const styles = {
     border: "1px solid #DFE1E6",
     borderRadius: "3px",
     cursor: "pointer",
+  },
+  error: {
+    padding: "12px 16px",
+    backgroundColor: "#FFEBE6",
+    border: "1px solid #FF5630",
+    borderRadius: "3px",
+    color: "#BF2600",
+    fontSize: "14px",
   },
 };
 
