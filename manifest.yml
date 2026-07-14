@@ -6,16 +6,12 @@ modules:
       resource: main
       resolver:
         function: resolver
-      config:
-        resource: config
   function:
     - key: resolver
       handler: index.handler
 
 resources:
   - key: main
-    path: static/build
-  - key: config
     path: static/build
 
 app:

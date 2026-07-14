@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { invoke } from "@forge/bridge";
+import { invoke, view } from "@forge/bridge";
 
 const RESIZE_HANDLE_HEIGHT = 8;
 const MIN_HEIGHT = 100;
@@ -19,6 +19,7 @@ function App() {
   const [iframeHeight, setIframeHeight] = useState(DEFAULT_HEIGHT);
   const [isResizing, setIsResizing] = useState(false);
   const [sandboxFlags, setSandboxFlags] = useState("allow-scripts");
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
@@ -29,6 +30,10 @@ function App() {
   useEffect(() => {
     async function init() {
       try {
+        const context = await view.getContext();
+        const renderMode = context?.extension?.renderMode;
+        setIsEditMode(renderMode === "edit");
+
         const cfg = await invoke("getConfig");
         setConfig(cfg);
         setSandboxFlags(cfg.sandboxPermissions || "allow-scripts");
