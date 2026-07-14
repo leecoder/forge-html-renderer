@@ -1,0 +1,43 @@
+package.json
+  s_b9024a7748b4ef::t_45b4e4d8d45dc4 14
+src/index.js
+  s_51aed462cbc2cb::t_31142df6191114 3
+  s_51aed462cbc2cb::t_2713d0e9b76de1 91
+  s_51aed462cbc2cb::t_05ca0612982309 2,76-77,79,82-84,86-87,89-90,92-115,118-120,123-125
+  s_51aed462cbc2cb::t_da2e7343362221 78,85
+static/src/App.jsx
+  s_51aed462cbc2cb::t_78126eda65ac9c 25
+  s_51aed462cbc2cb::t_4c137acf8c3a91 82
+  s_51aed462cbc2cb::t_b886947f77a237 291
+  s_51aed462cbc2cb::t_df96f6740d1674 2,15-16,19,24,28-29,33-36,38,63-66,72,79-81,83-109,164-177,184-210,214,216-217,222-232,241,256,266,270,276-284,292-302
+  s_51aed462cbc2cb::t_0b4b58fac5ee3c 26-27
+manifest.yml
+  s_51aed462cbc2cb::t_6d77c6ed945ee0 27,29-30
+  s_51aed462cbc2cb::t_73314fa1121530 28
+package-lock.json
+  s_b9024a7748b4ef::t_0f5695550ad909 13,148-333,502-564,978-983,1092-1133,1222-1249,1297-1351,1372-1384,1398-1409,2015-2063,2363-2368,2376-2384,2436-2444,2494-2505,2588-2636,2671-2686,2922-2927,3244-3252,3462-3483,3532-3546
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "ccf9fe8e76b6d10f2ba8b0e0965cf03e9ffa0e97",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    },
+    "s_b9024a7748b4ef": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
