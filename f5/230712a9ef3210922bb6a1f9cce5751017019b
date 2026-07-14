@@ -1,0 +1,29 @@
+static/vite.config.config.js
+  s_51aed462cbc2cb::t_775e17d711d109 1-14
+static/src/App.jsx
+  s_51aed462cbc2cb::t_9ef198f4120d17 33-36
+  s_51aed462cbc2cb::t_6c5a8a3676eed7 2
+  s_51aed462cbc2cb::t_2d6fd19108fad7 22
+static/src/config-entry.jsx
+  s_51aed462cbc2cb::t_feae605d2c55c9 1-10
+static/config.html
+  s_51aed462cbc2cb::t_1a70a62886516c 1-12
+static/src/index.jsx
+  s_51aed462cbc2cb::t_970d7d703c3089 6-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "f5230712a9ef3210922bb6a1f9cce5751017019b",
+  "prompts": {},
+  "sessions": {
+    "s_51aed462cbc2cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0a21be7c6ffeT4etHynqkELUYL",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
