@@ -4,6 +4,74 @@ import { invoke, view } from "@forge/bridge";
 const MIN_HEIGHT = 80;
 const DEFAULT_HEIGHT = 400;
 
+// Keep in sync with manifest.yml permissions.external.scripts / .styles
+const ALLOWED_SCRIPTS = [
+  "cdn.jsdelivr.net",
+  "cdnjs.cloudflare.com",
+  "unpkg.com",
+  "d3js.org",
+  "cdn.plot.ly",
+  "cdn.datatables.net",
+  "code.highcharts.com",
+  "www.gstatic.com",
+  "ajax.googleapis.com",
+  "code.jquery.com",
+  "cdn.tailwindcss.com",
+  "cdn.bokeh.org",
+  "cdn.rawgit.com",
+  "raw.githubusercontent.com",
+];
+
+const ALLOWED_STYLES = [
+  "cdn.jsdelivr.net",
+  "cdnjs.cloudflare.com",
+  "unpkg.com",
+  "d3js.org",
+  "cdn.datatables.net",
+  "fonts.googleapis.com",
+  "cdn.tailwindcss.com",
+  "netdna.bootstrapcdn.com",
+];
+
+function getBlockedDomains(html) {
+  if (!html) return [];
+  const blocked = new Set();
+
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  // Scripts: <script src="...">
+  doc.querySelectorAll("script[src]").forEach((el) => {
+    checkBlocked(el.getAttribute("src"), ALLOWED_SCRIPTS, "script", blocked);
+  });
+
+  // Stylesheets: <link> where rel token list includes "stylesheet"
+  doc.querySelectorAll("link[href]").forEach((el) => {
+    const rel = (el.getAttribute("rel") || "").toLowerCase().split(/\s+/);
+    if (rel.includes("stylesheet")) {
+      checkBlocked(el.getAttribute("href"), ALLOWED_STYLES, "style", blocked);
+    }
+  });
+
+  return [...blocked];
+}
+
+function checkBlocked(raw, allowedList, label, blocked) {
+  if (!raw) return;
+  try {
+    const url = raw.startsWith("//") ? "https:" + raw : raw;
+    const parsed = new URL(url, "https://placeholder.invalid");
+    // Only external (absolute) URLs matter
+    if (parsed.hostname === "placeholder.invalid") return;
+    if (parsed.protocol !== "https:") {
+      blocked.add(`${parsed.hostname} (${label}, http not allowed)`);
+      return;
+    }
+    if (!allowedList.includes(parsed.hostname)) {
+      blocked.add(`${parsed.hostname} (${label})`);
+    }
+  } catch (_) { /* malformed URL — skip */ }
+}
+
 function App() {
   const [htmlContent, setHtmlContent] = useState(null);
   const [isLargeFile, setIsLargeFile] = useState(false);
@@ -17,6 +85,7 @@ function App() {
   const [sandboxFlags] = useState("allow-scripts allow-same-origin allow-popups");
   const [showToolbar, setShowToolbar] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [blockedDomains, setBlockedDomains] = useState([]);
 
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -129,6 +198,7 @@ function App() {
       if (first.done) {
         setIsLargeFile(false);
         setHtmlContent(first.html);
+        setBlockedDomains(getBlockedDomains(first.html));
         return;
       }
 
@@ -152,7 +222,9 @@ function App() {
 
       if (loadVersionRef.current !== currentVersion) return;
       setIsLargeFile(true);
-      setHtmlContent(chunks.join(""));
+      const fullHtml = chunks.join("");
+      setHtmlContent(fullHtml);
+      setBlockedDomains(getBlockedDomains(fullHtml));
     } catch (err) {
       if (loadVersionRef.current !== currentVersion) return;
       setError("Failed to load attachment: " + err.message);
@@ -176,6 +248,7 @@ function App() {
       await loadContent(attId);
     } else {
       setHtmlContent(null);
+      setBlockedDomains([]);
     }
   };
 
@@ -306,6 +379,15 @@ function App() {
         </div>
       )}
 
+      {showToolbar && blockedDomains.length > 0 && (
+        <div style={styles.warning}>
+          ⚠️ CSP blocked domains: {blockedDomains.join(", ")}
+          <div style={styles.warningHint}>
+            These external resources may not load. Add them to manifest.yml to allow.
+          </div>
+        </div>
+      )}
+
       {!blobUrl && !htmlContent && !loading && (
         <div style={styles.empty}>
           No HTML attachment selected. Upload or select an HTML file.
@@ -362,6 +444,20 @@ const styles = {
     color: "#BF2600",
     fontSize: "14px",
     marginBottom: "8px",
+  },
+  warning: {
+    padding: "8px 12px",
+    backgroundColor: "#FFFAE6",
+    border: "1px solid #FF991F",
+    borderRadius: "3px",
+    color: "#974F0C",
+    fontSize: "12px",
+    marginBottom: "4px",
+  },
+  warningHint: {
+    fontSize: "11px",
+    color: "#8C6D1F",
+    marginTop: "2px",
   },
   empty: {
     padding: "20px",
