@@ -40,7 +40,7 @@ resolver.define("getAttachments", async ({ payload, context }) => {
 });
 
 resolver.define("getAttachmentContent", async ({ payload, context }) => {
-  const { attachmentId } = payload;
+  const { attachmentId, offset = 0, chunkSize = 4 * 1024 * 1024 } = payload;
 
   const metaResponse = await api.asUser().requestConfluence(
     route`/wiki/api/v2/attachments/${attachmentId}`,
@@ -70,7 +70,16 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   }
 
   const htmlContent = await contentResponse.text();
-  return { html: htmlContent, title };
+  const totalSize = htmlContent.length;
+
+  if (totalSize <= chunkSize && offset === 0) {
+    return { html: htmlContent, title, totalSize, done: true };
+  }
+
+  const chunk = htmlContent.slice(offset, offset + chunkSize);
+  const done = offset + chunkSize >= totalSize;
+
+  return { html: chunk, title, totalSize, offset, done };
 });
 
 resolver.define("getSavedAttachment", async ({ payload, context }) => {

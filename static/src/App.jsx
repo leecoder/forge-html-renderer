@@ -6,6 +6,7 @@ const DEFAULT_HEIGHT = 400;
 
 function App() {
   const [htmlContent, setHtmlContent] = useState(null);
+  const [blobUrl, setBlobUrl] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,6 +20,28 @@ function App() {
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
   const contentHeightRef = useRef(0);
+  const blobUrlRef = useRef(null);
+
+  useEffect(() => {
+    if (!htmlContent) {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+      setBlobUrl(null);
+      return;
+    }
+
+    const enhanced = getEnhancedHtml(htmlContent);
+    const blob = new Blob([enhanced], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+    }
+    blobUrlRef.current = url;
+    setBlobUrl(url);
+  }, [htmlContent]);
 
   useEffect(() => {
     async function init() {
@@ -79,8 +102,26 @@ function App() {
     try {
       setLoading(true);
       setError(null);
-      const result = await invoke("getAttachmentContent", { attachmentId });
-      setHtmlContent(result.html);
+
+      const first = await invoke("getAttachmentContent", { attachmentId, offset: 0 });
+
+      if (first.done) {
+        setHtmlContent(first.html);
+        return;
+      }
+
+      const chunks = [first.html];
+      let offset = first.html.length;
+      const chunkSize = 4 * 1024 * 1024;
+
+      while (offset < first.totalSize) {
+        const next = await invoke("getAttachmentContent", { attachmentId, offset, chunkSize });
+        chunks.push(next.html);
+        offset += next.html.length;
+        if (next.done) break;
+      }
+
+      setHtmlContent(chunks.join(""));
     } catch (err) {
       setError("Failed to load attachment: " + err.message);
     } finally {
@@ -231,16 +272,16 @@ function App() {
         </div>
       )}
 
-      {!htmlContent && !loading && (
+      {!blobUrl && !loading && (
         <div style={styles.empty}>
           No HTML attachment selected. Upload or select an HTML file.
         </div>
       )}
 
-      {htmlContent && (
+      {blobUrl && (
         <iframe
           ref={iframeRef}
-          srcDoc={getEnhancedHtml(htmlContent)}
+          src={blobUrl}
           sandbox={sandboxFlags}
           style={{
             ...styles.iframe,
