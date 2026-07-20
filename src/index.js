@@ -88,9 +88,12 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   }
 
   const buf = Buffer.from(htmlContent, "utf-8");
-  const sliceEnd = Math.min(offset + chunkSize, buf.length);
+  let sliceEnd = Math.min(offset + chunkSize, buf.length);
+  while (sliceEnd > offset && sliceEnd < buf.length && (buf[sliceEnd] & 0xc0) === 0x80) {
+    sliceEnd -= 1;
+  }
   const chunk = buf.slice(offset, sliceEnd).toString("utf-8");
-  const nextOffset = offset + Buffer.byteLength(chunk, "utf-8");
+  const nextOffset = sliceEnd;
   const done = nextOffset >= totalBytes;
 
   return { html: chunk, title, totalSize: totalBytes, offset, nextOffset, done, version };
