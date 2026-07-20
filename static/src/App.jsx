@@ -6,6 +6,7 @@ const DEFAULT_HEIGHT = 400;
 
 function App() {
   const [htmlContent, setHtmlContent] = useState(null);
+  const [isLargeFile, setIsLargeFile] = useState(false);
   const [blobUrl, setBlobUrl] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [selectedAttachment, setSelectedAttachment] = useState(null);
@@ -21,9 +22,19 @@ function App() {
   const fileInputRef = useRef(null);
   const contentHeightRef = useRef(0);
   const blobUrlRef = useRef(null);
+  const loadVersionRef = useRef(0);
 
   useEffect(() => {
     if (!htmlContent) {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+      setBlobUrl(null);
+      return;
+    }
+
+    if (!isLargeFile) {
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
@@ -41,7 +52,14 @@ function App() {
     }
     blobUrlRef.current = url;
     setBlobUrl(url);
-  }, [htmlContent]);
+
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, [htmlContent, isLargeFile]);
 
   useEffect(() => {
     async function init() {
@@ -99,33 +117,49 @@ function App() {
   };
 
   const loadContent = async (attachmentId) => {
+    const currentVersion = ++loadVersionRef.current;
+
     try {
       setLoading(true);
       setError(null);
 
       const first = await invoke("getAttachmentContent", { attachmentId, offset: 0 });
+      if (loadVersionRef.current !== currentVersion) return;
 
       if (first.done) {
+        setIsLargeFile(false);
         setHtmlContent(first.html);
         return;
       }
 
       const chunks = [first.html];
-      let offset = first.html.length;
-      const chunkSize = 4 * 1024 * 1024;
+      let offset = first.nextOffset || first.html.length;
+      const expectedVersion = first.version;
 
       while (offset < first.totalSize) {
-        const next = await invoke("getAttachmentContent", { attachmentId, offset, chunkSize });
+        const next = await invoke("getAttachmentContent", { attachmentId, offset });
+        if (loadVersionRef.current !== currentVersion) return;
+
+        if (expectedVersion != null && next.version != null && next.version !== expectedVersion) {
+          setError("File was updated during loading. Please retry.");
+          return;
+        }
+
         chunks.push(next.html);
-        offset += next.html.length;
+        offset = next.nextOffset || (offset + next.html.length);
         if (next.done) break;
       }
 
+      if (loadVersionRef.current !== currentVersion) return;
+      setIsLargeFile(true);
       setHtmlContent(chunks.join(""));
     } catch (err) {
+      if (loadVersionRef.current !== currentVersion) return;
       setError("Failed to load attachment: " + err.message);
     } finally {
-      setLoading(false);
+      if (loadVersionRef.current === currentVersion) {
+        setLoading(false);
+      }
     }
   };
 
@@ -272,13 +306,27 @@ function App() {
         </div>
       )}
 
-      {!blobUrl && !loading && (
+      {!blobUrl && !htmlContent && !loading && (
         <div style={styles.empty}>
           No HTML attachment selected. Upload or select an HTML file.
         </div>
       )}
 
-      {blobUrl && (
+      {htmlContent && !isLargeFile && (
+        <iframe
+          ref={iframeRef}
+          srcDoc={getEnhancedHtml(htmlContent)}
+          sandbox={sandboxFlags}
+          style={{
+            ...styles.iframe,
+            height: iframeHeight + "px",
+            borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
+          }}
+          title="HTML Attachment"
+        />
+      )}
+
+      {blobUrl && isLargeFile && (
         <iframe
           ref={iframeRef}
           src={blobUrl}
