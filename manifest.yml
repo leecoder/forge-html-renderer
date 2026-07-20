@@ -35,8 +35,11 @@ permissions:
     scripts:
       - "unsafe-inline"
       - "unsafe-eval"
+      - "blob:"
     styles:
       - "unsafe-inline"
+    frames:
+      - "blob:"
   external:
     scripts:
       - "https://cdn.jsdelivr.net"

@@ -40,7 +40,17 @@ resolver.define("getAttachments", async ({ payload, context }) => {
 });
 
 resolver.define("getAttachmentContent", async ({ payload, context }) => {
-  const { attachmentId } = payload;
+  const MAX_CHUNK_BYTES = 3.5 * 1024 * 1024;
+  const MIN_CHUNK_BYTES = 1024;
+
+  let { attachmentId, offset = 0, chunkSize } = payload;
+
+  offset = Number(offset);
+  if (!Number.isFinite(offset) || offset < 0) offset = 0;
+
+  chunkSize = chunkSize != null ? Number(chunkSize) : MAX_CHUNK_BYTES;
+  if (!Number.isFinite(chunkSize) || chunkSize < MIN_CHUNK_BYTES) chunkSize = MIN_CHUNK_BYTES;
+  if (chunkSize > MAX_CHUNK_BYTES) chunkSize = MAX_CHUNK_BYTES;
 
   const metaResponse = await api.asUser().requestConfluence(
     route`/wiki/api/v2/attachments/${attachmentId}`,
@@ -55,6 +65,7 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   const meta = await metaResponse.json();
   const pageId = meta.pageId;
   const title = meta.title;
+  const version = meta.version?.number || null;
 
   if (!pageId || !title) {
     throw new Error("Attachment metadata missing pageId or title");
@@ -70,7 +81,22 @@ resolver.define("getAttachmentContent", async ({ payload, context }) => {
   }
 
   const htmlContent = await contentResponse.text();
-  return { html: htmlContent, title };
+  const totalBytes = Buffer.byteLength(htmlContent, "utf-8");
+
+  if (totalBytes <= chunkSize && offset === 0) {
+    return { html: htmlContent, title, totalSize: totalBytes, done: true, version };
+  }
+
+  const buf = Buffer.from(htmlContent, "utf-8");
+  let sliceEnd = Math.min(offset + chunkSize, buf.length);
+  while (sliceEnd > offset && sliceEnd < buf.length && (buf[sliceEnd] & 0xc0) === 0x80) {
+    sliceEnd -= 1;
+  }
+  const chunk = buf.slice(offset, sliceEnd).toString("utf-8");
+  const nextOffset = sliceEnd;
+  const done = nextOffset >= totalBytes;
+
+  return { html: chunk, title, totalSize: totalBytes, offset, nextOffset, done, version };
 });
 
 resolver.define("getSavedAttachment", async ({ payload, context }) => {
