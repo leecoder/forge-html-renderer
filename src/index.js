@@ -6,22 +6,31 @@ const resolver = new Resolver();
 
 resolver.define("getAttachments", async ({ payload, context }) => {
   const pageId = context.extension.content.id;
+  const allAttachments = [];
+  let cursor = null;
 
-  const response = await api.asUser().requestConfluence(
-    route`/wiki/api/v2/pages/${pageId}/attachments?limit=100&status=current`,
-    { headers: { Accept: "application/json" } }
-  );
+  do {
+    const attachmentsPath = cursor
+      ? route`/wiki/api/v2/pages/${pageId}/attachments?limit=100&status=current&cursor=${cursor}`
+      : route`/wiki/api/v2/pages/${pageId}/attachments?limit=100&status=current`;
+    const response = await api.asUser().requestConfluence(
+      attachmentsPath,
+      { headers: { Accept: "application/json" } }
+    );
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Failed to fetch attachments: ${response.status} - ${text}`);
-  }
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to fetch attachments: ${response.status} - ${text}`);
+    }
 
-  const data = await response.json();
+    const data = await response.json();
+    allAttachments.push(...(data.results || []));
+    cursor = data._links?.next ? new URLSearchParams(data._links.next.split("?")[1]).get("cursor") : null;
+  } while (cursor);
 
-  const htmlAttachments = data.results.filter((att) => {
+  const htmlAttachments = allAttachments.filter((att) => {
     const mediaType = att.mediaType || "";
-    const filename = att.title || "";
+    const filename = (att.title || "").toLowerCase();
     return (
       mediaType === "text/html" ||
       mediaType === "application/xhtml+xml" ||
@@ -109,7 +118,7 @@ resolver.define("saveSelectedAttachment", async ({ payload, context }) => {
   const { attachmentId, title, height } = payload;
   const macroId = context.extension.macro?.id || context.localId || context.extension.content.id;
   const data = { attachmentId, title };
-  if (height) data.height = height;
+  if (height !== null && height !== undefined) data.height = height;
   await kvs.set(`macro-${macroId}`, data);
   return { success: true };
 });
