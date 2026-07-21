@@ -87,10 +87,6 @@ function FullView() {
     }
   };
 
-  const handleClose = () => {
-    view.close();
-  };
-
   if (loading) {
     return (
       <div style={styles.container}>
@@ -103,16 +99,12 @@ function FullView() {
     return (
       <div style={styles.container}>
         <div style={styles.error}>{error}</div>
-        <button onClick={handleClose} style={styles.closeButton}>Close</button>
       </div>
     );
   }
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <button onClick={handleClose} style={styles.closeButton}>✕ Close</button>
-      </div>
       <iframe
         ref={iframeRef}
         srcDoc={htmlContent}
@@ -132,13 +124,7 @@ const styles = {
     height: "100vh",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
-  header: {
-    display: "flex",
-    justifyContent: "flex-end",
-    padding: "8px 12px",
-    backgroundColor: "#F4F5F7",
-    borderBottom: "1px solid #DFE1E6",
-  },
+
   loading: {
     padding: "16px",
     textAlign: "center",
@@ -153,16 +139,6 @@ const styles = {
     color: "#BF2600",
     fontSize: "14px",
     margin: "16px",
-  },
-  closeButton: {
-    padding: "6px 12px",
-    fontSize: "13px",
-    color: "#42526E",
-    backgroundColor: "#fff",
-    border: "1px solid #DFE1E6",
-    borderRadius: "3px",
-    cursor: "pointer",
-    fontWeight: 500,
   },
   iframe: {
     flex: 1,
