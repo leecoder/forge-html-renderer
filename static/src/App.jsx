@@ -96,7 +96,7 @@ function App() {
       try {
         const context = await view.getContext();
         const isEditing = context?.extension?.isEditing === true;
-        setShowToolbar(isEditing);
+        const isLivePage = context?.extension?.content?.subtype === "live";
 
         const saved = await invoke("getSavedAttachment");
         const atts = await invoke("getAttachments");
@@ -105,6 +105,13 @@ function App() {
         if (saved?.height) {
           setIframeHeight(saved.height);
           setHeightInput(String(saved.height));
+        }
+
+        const hasFile = !!(saved?.attachmentId || atts.length === 1);
+        if (isEditing && !isLivePage) {
+          setShowToolbar(true);
+        } else {
+          setShowToolbar(!hasFile);
         }
 
         if (saved?.attachmentId) {
