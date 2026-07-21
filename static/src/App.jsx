@@ -309,7 +309,7 @@ function App() {
 
   return (
     <div style={styles.container}>
-      {(showToolbar || viewModeToolbar || !htmlContent) && (
+      {(showToolbar || viewModeToolbar || !selectedAttachment) && (
         <div style={styles.toolbar}>
           {attachments.length > 1 && (
             <select
@@ -399,6 +399,7 @@ function App() {
                 }}
                 title="Edit settings"
                 aria-label="Edit settings"
+                aria-expanded={viewModeToolbar}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{transform: "scaleX(-1)"}}>
                   <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/>
