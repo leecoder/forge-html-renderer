@@ -1,0 +1,44 @@
+static/src/App.jsx
+  s_4071c2d3575643::t_f8a81ef0623931 267-278
+  s_4071c2d3575643::t_20ce479f5c4b9f 503-530
+  s_4071c2d3575643::t_21226ea8033b37 2
+  s_4071c2d3575643::t_84774233234dd7 377-393,395-399
+  s_4071c2d3575643::t_44da02b284e0e2 349-352,354-357
+  s_4071c2d3575643::t_4b9ae5e2b44342 394
+  s_4071c2d3575643::t_5b91a7904a50cf 353
+static/package.json
+  s_4071c2d3575643::t_bec0f119c8283c 16
+static/vite.config.js
+  s_4071c2d3575643::t_4874ed2d9c55c5 3,12-15
+manifest.yml
+  s_4071c2d3575643::t_7535af3dbed0d4 19
+  s_4071c2d3575643::t_4362fc2eaf92f7 17-18,20
+static/fullview.html
+  s_4071c2d3575643::t_9c818e43210f52 1-12
+static/postbuild.js
+  s_4071c2d3575643::t_1608b5bdee10c9 1-3,4-14,22,24-25,32-34
+  s_4071c2d3575643::t_c3c23c8f8fd2c4 15-21,23,26-27,29-31
+  s_4071c2d3575643::t_017cf5db2fb992 28
+static/src/FullView.jsx
+  s_4071c2d3575643::t_43141990af4061 1-8,10-11,14-19,24-26,28,33-35,38-39,43-48,51-63,66-76,79-80,82-83,87-175
+  s_4071c2d3575643::t_e28de38f5c60e5 9,12-13,20-23,27,29-32,36-37,40-42,49-50,64,77-78,81,84-86
+  s_4071c2d3575643::t_cf97bdcd587e31 65
+static/src/fullview-entry.jsx
+  s_4071c2d3575643::t_aa8570a0139eec 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "98651893093ffcc93842e3be3c09b70e4d7758a0",
+  "prompts": {},
+  "sessions": {
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
