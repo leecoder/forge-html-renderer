@@ -288,25 +288,27 @@ function App() {
     return (
       <div style={styles.container}>
         <div style={styles.error}>{error}</div>
-        <div style={styles.toolbar}>
-          <label style={styles.uploadLabel}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".html,.htm"
-              onChange={handleFileUpload}
-              style={styles.fileInput}
-            />
-            Upload HTML
-          </label>
-        </div>
+        {showToolbar && (
+          <div style={styles.toolbar}>
+            <label style={styles.uploadLabel}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".html,.htm"
+                onChange={handleFileUpload}
+                style={styles.fileInput}
+              />
+              Upload HTML
+            </label>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div style={styles.container}>
-      {showToolbar && (
+      {(showToolbar || !htmlContent) && (
         <div style={styles.toolbar}>
           {attachments.length > 1 && (
             <select
