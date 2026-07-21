@@ -82,6 +82,7 @@ function App() {
   const [heightInput, setHeightInput] = useState("");
   const [sandboxFlags] = useState("allow-scripts allow-same-origin allow-popups");
   const [showToolbar, setShowToolbar] = useState(false);
+  const [viewModeToolbar, setViewModeToolbar] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [blockedDomains, setBlockedDomains] = useState([]);
 
@@ -308,7 +309,7 @@ function App() {
 
   return (
     <div style={styles.container}>
-      {(showToolbar || !htmlContent) && (
+      {(showToolbar || viewModeToolbar || !htmlContent) && (
         <div style={styles.toolbar}>
           {attachments.length > 1 && (
             <select
@@ -384,19 +385,36 @@ function App() {
             style={{
               ...styles.iframe,
               height: iframeHeight + "px",
-              borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
+              borderRadius: (showToolbar || viewModeToolbar) ? "0 0 3px 3px" : "3px",
             }}
             title="HTML Attachment"
           />
           {!showToolbar && (
-            <button
-              onClick={openFullView}
-              style={styles.expandButton}
-              title="Full screen"
-              aria-label="Full screen"
-            >
-              ⛶
-            </button>
+            <>
+              <button
+                onClick={() => setViewModeToolbar((v) => !v)}
+                style={{
+                  ...styles.expandButton,
+                  right: "44px",
+                }}
+                title="Edit settings"
+                aria-label="Edit settings"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{transform: "scaleX(-1)"}}>
+                  <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/>
+                </svg>
+              </button>
+              <button
+                onClick={openFullView}
+                style={styles.expandButton}
+                title="Full screen"
+                aria-label="Full screen"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 10v4h4M14 6V2h-4M2 6V2h4M14 10v4h-4"/>
+                </svg>
+              </button>
+            </>
           )}
         </div>
       )}

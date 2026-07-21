@@ -3,3 +3,6 @@ static/node_modules/
 static/build/
 .env
 *.log
+.omo/
+.playwright-mcp/
+*.png
