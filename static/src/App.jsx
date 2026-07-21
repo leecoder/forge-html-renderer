@@ -295,9 +295,16 @@ function App() {
 
   const openFullView = () => {
     if (!selectedAttachment) return;
+    const att = attachments.find((a) => a.id === selectedAttachment);
     const modal = new Modal({
       resource: 'fullview',
       size: 'fullscreen',
+      // BUGBUG: title is ignored by the Forge platform for macro-originated fullscreen modals.
+      // Confluence always renders manifest.yml macro.title ("HTML Attachment Renderer") instead.
+      // The enforced header cannot be removed or overridden from Custom UI (iframe sandbox).
+      // Ref: https://community.developer.atlassian.com/t/early-access-program-forge-ui-fullscreen-modal/98594
+      // Ref: https://community.developer.atlassian.com/t/is-it-possible-to-change-or-control-the-title-field-in-forge-app-ui/83706
+      title: att?.title || 'HTML View',
       context: {
         attachmentId: selectedAttachment,
       },
