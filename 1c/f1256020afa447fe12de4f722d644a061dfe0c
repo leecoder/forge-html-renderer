@@ -1,0 +1,38 @@
+static/src/App.jsx
+  s_4071c2d3575643::t_f8a81ef0623931 309-320
+  s_4071c2d3575643::t_20ce479f5c4b9f 568-595
+  s_4071c2d3575643::t_21226ea8033b37 2
+  s_4071c2d3575643::t_84774233234dd7 418-439,443-464
+  s_4071c2d3575643::t_44da02b284e0e2 391-398
+static/package.json
+  s_4071c2d3575643::t_bec0f119c8283c 16
+static/vite.config.js
+  s_4071c2d3575643::t_4874ed2d9c55c5 3,12-15
+manifest.yml
+  s_4071c2d3575643::t_7535af3dbed0d4 19
+  s_4071c2d3575643::t_4362fc2eaf92f7 17-18,20
+static/fullview.html
+  s_4071c2d3575643::t_9c818e43210f52 1-12
+static/postbuild.js
+  s_4071c2d3575643::t_1608b5bdee10c9 1-24
+static/src/FullView.jsx
+  s_4071c2d3575643::t_43141990af4061 1-155
+static/src/fullview-entry.jsx
+  s_4071c2d3575643::t_aa8570a0139eec 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "1cf1256020afa447fe12de4f722d644a061dfe0c",
+  "prompts": {},
+  "sessions": {
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
