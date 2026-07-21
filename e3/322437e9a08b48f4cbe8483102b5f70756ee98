@@ -1,0 +1,20 @@
+static/src/FullView.jsx
+  s_4071c2d3575643::t_ab8ff38f3f2536 2
+  s_4071c2d3575643::t_31834a66d6b3ab 127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "e3322437e9a08b48f4cbe8483102b5f70756ee98",
+  "prompts": {},
+  "sessions": {
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
