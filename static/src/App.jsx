@@ -84,6 +84,8 @@ function App() {
   const [showToolbar, setShowToolbar] = useState(false);
   const [viewModeToolbar, setViewModeToolbar] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isLivePage, setIsLivePage] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [blockedDomains, setBlockedDomains] = useState([]);
 
   const iframeRef = useRef(null);
@@ -95,8 +97,10 @@ function App() {
     async function init() {
       try {
         const context = await view.getContext();
-        const isEditing = context?.extension?.isEditing === true;
-        const isLivePage = context?.extension?.content?.subtype === "live";
+        const editing = context?.extension?.isEditing === true;
+        const livePage = context?.extension?.content?.subtype === "live";
+        setIsEditing(editing);
+        setIsLivePage(livePage);
 
         const saved = await invoke("getSavedAttachment");
         const atts = await invoke("getAttachments");
@@ -108,7 +112,7 @@ function App() {
         }
 
         const hasFile = !!(saved?.attachmentId || atts.length === 1);
-        if (isEditing && !isLivePage) {
+        if (editing && !livePage) {
           setShowToolbar(true);
         } else {
           setShowToolbar(!hasFile);
@@ -212,6 +216,9 @@ function App() {
       const att = attachments.find((a) => a.id === attId);
       await saveSelection(attId, att?.title || "", null);
       await loadContent(attId);
+      if (isLivePage && !isEditing) {
+        setShowToolbar(false);
+      }
     } else {
       setHtmlContent(null);
       setBlockedDomains([]);
@@ -264,6 +271,10 @@ function App() {
       setAttachments(atts);
 
       await loadContent(result.id);
+
+      if (isLivePage && !isEditing) {
+        setShowToolbar(false);
+      }
     } catch (err) {
       setError("Upload failed: " + err.message);
     } finally {
