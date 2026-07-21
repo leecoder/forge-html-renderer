@@ -376,6 +376,18 @@ function App() {
           >
             ⛶
           </button>
+          {viewModeToolbar && (
+            <button
+              onClick={() => setViewModeToolbar(false)}
+              style={styles.expandToolbarButton}
+              title="Hide toolbar"
+              aria-label="Hide toolbar"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 10l4-4 4 4"/>
+              </svg>
+            </button>
+          )}
         </div>
       )}
 
@@ -407,7 +419,7 @@ function App() {
             }}
             title="HTML Attachment"
           />
-          {!showToolbar && (
+          {!showToolbar && !viewModeToolbar && (
             <>
               <button
                 onClick={() => setViewModeToolbar((v) => !v)}
