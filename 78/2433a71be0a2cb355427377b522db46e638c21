@@ -1,0 +1,19 @@
+static/src/FullView.jsx
+  s_4071c2d3575643::t_31834a66d6b3ab 127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "782433a71be0a2cb355427377b522db46e638c21",
+  "prompts": {},
+  "sessions": {
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": null
+    }
+  }
+}
