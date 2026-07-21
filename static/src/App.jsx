@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { invoke, view } from "@forge/bridge";
+import { invoke, view, Modal } from "@forge/bridge";
 
 const MIN_HEIGHT = 80;
 const DEFAULT_HEIGHT = 400;
@@ -264,6 +264,18 @@ function App() {
     }
   };
 
+  const openFullView = () => {
+    if (!selectedAttachment) return;
+    const modal = new Modal({
+      resource: 'fullview',
+      size: 'fullscreen',
+      context: {
+        attachmentId: selectedAttachment,
+      },
+    });
+    modal.open();
+  };
+
   if (loading && !htmlContent) {
     return (
       <div style={styles.container}>
@@ -334,6 +346,15 @@ function App() {
             style={styles.heightInput}
           />
           <span style={styles.heightUnit}>px</span>
+          <button
+            onClick={openFullView}
+            style={styles.expandToolbarButton}
+            title="Full screen"
+            aria-label="Full screen"
+            disabled={!selectedAttachment}
+          >
+            ⛶
+          </button>
         </div>
       )}
 
@@ -353,17 +374,29 @@ function App() {
       )}
 
       {htmlContent && (
-        <iframe
-          ref={iframeRef}
-          srcDoc={getEnhancedHtml(htmlContent)}
-          sandbox={sandboxFlags}
-          style={{
-            ...styles.iframe,
-            height: iframeHeight + "px",
-            borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
-          }}
-          title="HTML Attachment"
-        />
+        <div style={{ position: "relative" }}>
+          <iframe
+            ref={iframeRef}
+            srcDoc={getEnhancedHtml(htmlContent)}
+            sandbox={sandboxFlags}
+            style={{
+              ...styles.iframe,
+              height: iframeHeight + "px",
+              borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
+            }}
+            title="HTML Attachment"
+          />
+          {!showToolbar && (
+            <button
+              onClick={openFullView}
+              style={styles.expandButton}
+              title="Full screen"
+              aria-label="Full screen"
+            >
+              ⛶
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -466,6 +499,34 @@ const styles = {
     border: "1px solid #DFE1E6",
     display: "block",
     overflow: "auto",
+  },
+  expandButton: {
+    position: "absolute",
+    top: "8px",
+    right: "8px",
+    width: "28px",
+    height: "28px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    border: "1px solid #DFE1E6",
+    borderRadius: "3px",
+    cursor: "pointer",
+    fontSize: "16px",
+    color: "#42526E",
+    lineHeight: 1,
+  },
+  expandToolbarButton: {
+    marginLeft: "8px",
+    padding: "4px 8px",
+    fontSize: "14px",
+    color: "#42526E",
+    backgroundColor: "#fff",
+    border: "1px solid #DFE1E6",
+    borderRadius: "3px",
+    cursor: "pointer",
+    lineHeight: 1,
   },
 };
 
