@@ -1,0 +1,32 @@
+static/package.json
+  s_4071c2d3575643::t_01311cd68464c6 6
+static/src/App.jsx
+  s_4071c2d3575643::t_11b7a54acfa50e 302-306
+  s_4071c2d3575643::t_6170f8172542f6 298,307
+static/package-lock.json
+  s_358c0b766fc18d::t_d2ab86612db615 11,20-118,347-355,793-796,798-884,1290-1367,1426-1453,1475-1522,1536-1559,1615-1656,1664-1700,1718-1772,1780-1804,1854-1881,1907-1980,1999-2004,2018-2032,2055-2163,2199-2290,2326-2439,2475-2504,2550-2561,2591-2611,2703-2730,2737-2751
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "1b8b467580ad0666241e2a2fa18dfe9ad26c09bf",
+  "prompts": {},
+  "sessions": {
+    "s_358c0b766fc18d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    },
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
