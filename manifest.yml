@@ -14,15 +14,13 @@ modules:
 resources:
   - key: main
     path: static/build
-    tunnel:
-      port: 5173
   - key: fullview
     path: static/build/fullview
   - key: icons
     path: static/images
 
 app:
-  id: ari:cloud:ecosystem::app/YOUR_APP_ID_HERE
+  id: ari:cloud:ecosystem::app/3969caa9-9058-48ea-a53a-6d9d4077adbc
   runtime:
     name: nodejs22.x
 

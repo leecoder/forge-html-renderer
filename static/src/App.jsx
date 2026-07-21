@@ -82,20 +82,27 @@ function App() {
   const [heightInput, setHeightInput] = useState("");
   const [sandboxFlags] = useState("allow-scripts allow-same-origin allow-popups");
   const [showToolbar, setShowToolbar] = useState(false);
+  const [viewModeToolbar, setViewModeToolbar] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isLivePage, setIsLivePage] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [blockedDomains, setBlockedDomains] = useState([]);
 
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
   const contentHeightRef = useRef(0);
   const loadVersionRef = useRef(0);
+  const hideToolbarRef = useRef(null);
+  const editButtonRef = useRef(null);
 
   useEffect(() => {
     async function init() {
       try {
         const context = await view.getContext();
-        const isEditing = context?.extension?.isEditing === true;
-        setShowToolbar(isEditing);
+        const editing = context?.extension?.isEditing === true;
+        const livePage = context?.extension?.content?.subtype === "live";
+        setIsEditing(editing);
+        setIsLivePage(livePage);
 
         const saved = await invoke("getSavedAttachment");
         const atts = await invoke("getAttachments");
@@ -104,6 +111,13 @@ function App() {
         if (saved?.height) {
           setIframeHeight(saved.height);
           setHeightInput(String(saved.height));
+        }
+
+        const hasFile = !!(saved?.attachmentId || atts.length === 1);
+        if (editing && !livePage) {
+          setShowToolbar(true);
+        } else {
+          setShowToolbar(!hasFile);
         }
 
         if (saved?.attachmentId) {
@@ -122,6 +136,14 @@ function App() {
     }
     init();
   }, []);
+
+  useEffect(() => {
+    if (viewModeToolbar) {
+      hideToolbarRef.current?.focus();
+    } else {
+      editButtonRef.current?.focus();
+    }
+  }, [viewModeToolbar]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -204,6 +226,9 @@ function App() {
       const att = attachments.find((a) => a.id === attId);
       await saveSelection(attId, att?.title || "", null);
       await loadContent(attId);
+      if (isLivePage && !isEditing) {
+        setShowToolbar(false);
+      }
     } else {
       setHtmlContent(null);
       setBlockedDomains([]);
@@ -256,6 +281,10 @@ function App() {
       setAttachments(atts);
 
       await loadContent(result.id);
+
+      if (isLivePage && !isEditing) {
+        setShowToolbar(false);
+      }
     } catch (err) {
       setError("Upload failed: " + err.message);
     } finally {
@@ -288,25 +317,27 @@ function App() {
     return (
       <div style={styles.container}>
         <div style={styles.error}>{error}</div>
-        <div style={styles.toolbar}>
-          <label style={styles.uploadLabel}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".html,.htm"
-              onChange={handleFileUpload}
-              style={styles.fileInput}
-            />
-            Upload HTML
-          </label>
-        </div>
+        {showToolbar && (
+          <div style={styles.toolbar}>
+            <label style={styles.uploadLabel}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".html,.htm"
+                onChange={handleFileUpload}
+                style={styles.fileInput}
+              />
+              Upload HTML
+            </label>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div style={styles.container}>
-      {showToolbar && (
+      {(showToolbar || viewModeToolbar || !selectedAttachment) && (
         <div style={styles.toolbar}>
           {attachments.length > 1 && (
             <select
@@ -355,6 +386,19 @@ function App() {
           >
             ⛶
           </button>
+          {viewModeToolbar && (
+            <button
+              ref={hideToolbarRef}
+              onClick={() => setViewModeToolbar(false)}
+              style={styles.expandToolbarButton}
+              title="Hide toolbar"
+              aria-label="Hide toolbar"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 10l4-4 4 4"/>
+              </svg>
+            </button>
+          )}
         </div>
       )}
 
@@ -382,19 +426,38 @@ function App() {
             style={{
               ...styles.iframe,
               height: iframeHeight + "px",
-              borderRadius: showToolbar ? "0 0 3px 3px" : "3px",
+              borderRadius: (showToolbar || viewModeToolbar) ? "0 0 3px 3px" : "3px",
             }}
             title="HTML Attachment"
           />
-          {!showToolbar && (
-            <button
-              onClick={openFullView}
-              style={styles.expandButton}
-              title="Full screen"
-              aria-label="Full screen"
-            >
-              ⛶
-            </button>
+          {!showToolbar && !viewModeToolbar && (
+            <>
+              <button
+                ref={editButtonRef}
+                onClick={() => setViewModeToolbar((v) => !v)}
+                style={{
+                  ...styles.expandButton,
+                  right: "44px",
+                }}
+                title="Edit settings"
+                aria-label="Edit settings"
+                aria-expanded={viewModeToolbar}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{transform: "scaleX(-1)"}}>
+                  <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/>
+                </svg>
+              </button>
+              <button
+                onClick={openFullView}
+                style={styles.expandButton}
+                title="Full screen"
+                aria-label="Full screen"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 10v4h4M14 6V2h-4M2 6V2h4M14 10v4h-4"/>
+                </svg>
+              </button>
+            </>
           )}
         </div>
       )}
