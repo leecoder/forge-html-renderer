@@ -1,0 +1,20 @@
+static/postbuild.js
+  s_4071c2d3575643::t_c3c23c8f8fd2c4 15-21,23,26-27,29-31
+  s_4071c2d3575643::t_017cf5db2fb992 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "951a95b0153e9c4a3293319a2d7a6805b7e530f8",
+  "prompts": {},
+  "sessions": {
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
