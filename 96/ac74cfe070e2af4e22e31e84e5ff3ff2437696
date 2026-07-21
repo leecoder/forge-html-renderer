@@ -1,0 +1,19 @@
+static/postbuild.js
+  s_4071c2d3575643::t_7ed3b07efd9599 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "96ac74cfe070e2af4e22e31e84e5ff3ff2437696",
+  "prompts": {},
+  "sessions": {
+    "s_4071c2d3575643": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_07e09454affeNUk8Nk1dcr3iZk",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
