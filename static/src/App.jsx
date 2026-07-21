@@ -439,6 +439,7 @@ function App() {
           />
           {!showToolbar && !viewModeToolbar && (
             <>
+              {isEditing && (
               <button
                 ref={editButtonRef}
                 onClick={() => setViewModeToolbar((v) => !v)}
@@ -454,6 +455,7 @@ function App() {
                   <path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z"/>
                 </svg>
               </button>
+              )}
               <button
                 onClick={openFullView}
                 style={styles.expandButton}
