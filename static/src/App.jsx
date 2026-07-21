@@ -92,6 +92,8 @@ function App() {
   const fileInputRef = useRef(null);
   const contentHeightRef = useRef(0);
   const loadVersionRef = useRef(0);
+  const hideToolbarRef = useRef(null);
+  const editButtonRef = useRef(null);
 
   useEffect(() => {
     async function init() {
@@ -134,6 +136,14 @@ function App() {
     }
     init();
   }, []);
+
+  useEffect(() => {
+    if (viewModeToolbar) {
+      hideToolbarRef.current?.focus();
+    } else {
+      editButtonRef.current?.focus();
+    }
+  }, [viewModeToolbar]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -378,6 +388,7 @@ function App() {
           </button>
           {viewModeToolbar && (
             <button
+              ref={hideToolbarRef}
               onClick={() => setViewModeToolbar(false)}
               style={styles.expandToolbarButton}
               title="Hide toolbar"
@@ -422,6 +433,7 @@ function App() {
           {!showToolbar && !viewModeToolbar && (
             <>
               <button
+                ref={editButtonRef}
                 onClick={() => setViewModeToolbar((v) => !v)}
                 style={{
                   ...styles.expandButton,
