@@ -23,10 +23,7 @@ if (fs.existsSync(src)) {
   html = html.replace(/\.\.\/assets\//g, "./assets/");
   fs.writeFileSync(dest, html, "utf-8");
 
-  const assetFiles = fs.readdirSync(srcAssetsDir);
-  for (const file of assetFiles) {
-    fs.copyFileSync(path.join(srcAssetsDir, file), path.join(destAssetsDir, file));
-  }
+  fs.cpSync(srcAssetsDir, destAssetsDir, { recursive: true });
 
   console.log("Moved fullview.html -> fullview/index.html (copied assets into fullview/assets/)");
 } else {
