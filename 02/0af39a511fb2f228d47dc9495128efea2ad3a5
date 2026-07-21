@@ -1,0 +1,19 @@
+manifest.yml
+  s_be101849f4c400::t_10e7343a1e6325 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "020af39a511fb2f228d47dc9495128efea2ad3a5",
+  "prompts": {},
+  "sessions": {
+    "s_be101849f4c400": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_07e07092bffekt9OTiO8jgIFUg",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
