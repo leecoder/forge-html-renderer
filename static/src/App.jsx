@@ -394,15 +394,6 @@ function App() {
             style={styles.heightInput}
           />
           <span style={styles.heightUnit}>px</span>
-          <button
-            onClick={openFullView}
-            style={styles.expandToolbarButton}
-            title="Full screen"
-            aria-label="Full screen"
-            disabled={!selectedAttachment}
-          >
-            ⛶
-          </button>
           {viewModeToolbar && (
             <button
               ref={hideToolbarRef}
