@@ -1,0 +1,20 @@
+static/src/App.jsx
+  s_dbf60809d1c6b6::t_2fb1e94236a9f6 458,469-481
+  s_dbf60809d1c6b6::t_65ae9956e8e71e 310-324
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "e8a6bc5eeab11ffe837cc6805566cedf4f99cf0a",
+  "prompts": {},
+  "sessions": {
+    "s_dbf60809d1c6b6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0770c3012ffeCwuCjfC4q2uEy5",
+        "model": "unknown"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
