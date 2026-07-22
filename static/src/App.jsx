@@ -307,6 +307,21 @@ function App() {
     modal.open();
   };
 
+  const handleDownload = () => {
+    if (!htmlContent || !selectedAttachment) return;
+    const att = attachments.find((a) => a.id === selectedAttachment);
+    const filename = att?.title || "download.html";
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading && !htmlContent) {
     return (
       <div style={styles.container}>
@@ -440,7 +455,7 @@ function App() {
                 onClick={() => setViewModeToolbar((v) => !v)}
                 style={{
                   ...styles.expandButton,
-                  right: "44px",
+                  right: "80px",
                 }}
                 title="Edit settings"
                 aria-label="Edit settings"
@@ -451,6 +466,19 @@ function App() {
                 </svg>
               </button>
               )}
+              <button
+                onClick={handleDownload}
+                style={{
+                  ...styles.expandButton,
+                  right: "44px",
+                }}
+                title="Download HTML"
+                aria-label="Download HTML"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 2v9M4 8l4 4 4-4M2 14h12"/>
+                </svg>
+              </button>
               <button
                 onClick={openFullView}
                 style={styles.expandButton}
