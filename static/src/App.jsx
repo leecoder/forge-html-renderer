@@ -319,7 +319,7 @@ function App() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   if (loading && !htmlContent) {
@@ -394,6 +394,17 @@ function App() {
             style={styles.heightInput}
           />
           <span style={styles.heightUnit}>px</span>
+          <button
+            onClick={openFullView}
+            style={styles.expandToolbarButton}
+            title="Full screen"
+            aria-label="Full screen"
+            disabled={!selectedAttachment}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 10v4h4M14 6V2h-4M2 6V2h4M14 10v4h-4"/>
+            </svg>
+          </button>
           {viewModeToolbar && (
             <button
               ref={hideToolbarRef}
