@@ -1,0 +1,20 @@
+manifest.yml
+  s_925d4b4b176399::t_3d2e7ac9793ca4 77
+  s_925d4b4b176399::t_a3c06947f152f3 76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e377c4d20419a2f5055955a9e88f4d9f22ac4f93",
+  "prompts": {},
+  "sessions": {
+    "s_925d4b4b176399": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f4d7c7358ffeeYSQWkFctV1IMK",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
