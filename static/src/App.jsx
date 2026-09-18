@@ -87,6 +87,7 @@ function App() {
   const [isLivePage, setIsLivePage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [blockedDomains, setBlockedDomains] = useState([]);
+  const [resourceErrors, setResourceErrors] = useState([]);
 
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -154,17 +155,67 @@ function App() {
           setIframeHeight(autoHeight > DEFAULT_HEIGHT ? DEFAULT_HEIGHT : autoHeight);
         }
       }
+
+      if (
+        event.data?.type !== "htmlRendererResourceError" ||
+        event.source !== iframeRef.current?.contentWindow
+      ) {
+        return;
+      }
+
+      const { hostname, resourceType } = event.data;
+      if (typeof hostname !== "string" || typeof resourceType !== "string") return;
+
+      const resource = `${hostname} (${resourceType})`;
+      setResourceErrors((current) => current.includes(resource) ? current : [...current, resource]);
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [heightInput]);
 
   const getEnhancedHtml = (html) => {
-    const heightScript = '<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()<\/script>';
-    if (html.includes("</body>")) {
-      return html.replace("</body>", heightScript + "</body>");
+    const resourceErrorScript = `<script>
+(function () {
+  function reportResourceError(event) {
+    var target = event.target;
+    if (!target || !target.tagName) return;
+
+    var tagName = target.tagName.toLowerCase();
+    if (tagName !== "img" && tagName !== "script" && tagName !== "link") return;
+    if (tagName === "link" && !(target.rel || "").toLowerCase().split(/\\s+/).includes("stylesheet")) return;
+
+    var rawUrl = target.currentSrc || target.src || target.href;
+    if (!rawUrl) return;
+
+    try {
+      var parsed = new URL(rawUrl, document.baseURI);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
+      window.parent.postMessage({
+        type: "htmlRendererResourceError",
+        resourceType: tagName === "link" ? "style" : tagName,
+        hostname: parsed.hostname
+      }, "*");
+    } catch (error) {
+      return;
     }
-    return html + heightScript;
+  }
+
+  document.addEventListener("error", reportResourceError, true);
+})();
+<\/script>`;
+    const heightScript = '<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()<\/script>';
+
+    const headMatch = /<head\b[^>]*>/i.exec(html);
+    const bodyMatch = /<body\b[^>]*>/i.exec(html);
+    const insertionPoint = headMatch || bodyMatch;
+    const enhancedHtml = insertionPoint
+      ? html.slice(0, insertionPoint.index + insertionPoint[0].length) + resourceErrorScript + html.slice(insertionPoint.index + insertionPoint[0].length)
+      : resourceErrorScript + html;
+
+    if (enhancedHtml.includes("</body>")) {
+      return enhancedHtml.replace("</body>", heightScript + "</body>");
+    }
+    return enhancedHtml + heightScript;
   };
 
   const loadContent = async (attachmentId) => {
@@ -173,6 +224,7 @@ function App() {
     try {
       setLoading(true);
       setError(null);
+      setResourceErrors([]);
 
       const first = await invoke("getAttachmentContent", { attachmentId, offset: 0 });
       if (loadVersionRef.current !== currentVersion) return;
@@ -232,6 +284,7 @@ function App() {
     } else {
       setHtmlContent(null);
       setBlockedDomains([]);
+      setResourceErrors([]);
     }
   };
 
@@ -426,6 +479,15 @@ function App() {
           ⚠️ CSP blocked domains: {blockedDomains.join(", ")}
           <div style={styles.warningHint}>
             These external resources may not load. Add them to manifest.yml to allow.
+          </div>
+        </div>
+      )}
+
+      {resourceErrors.length > 0 && (
+        <div style={styles.warning} role="alert">
+          External resources failed to load: {resourceErrors.join(", ")}
+          <div style={styles.warningHint}>
+            Some content may be incomplete. Check the resource URL or add its domain to manifest.yml when it is an approved source.
           </div>
         </div>
       )}
