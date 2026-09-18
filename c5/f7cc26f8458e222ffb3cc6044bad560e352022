@@ -1,0 +1,19 @@
+static/src/App.jsx
+  s_925d4b4b176399::t_1e515b258da338 222-224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c5f7cc26f8458e222ffb3cc6044bad560e352022",
+  "prompts": {},
+  "sessions": {
+    "s_925d4b4b176399": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f4d7c7358ffeeYSQWkFctV1IMK",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "leecoder <leecoder@aol.com>"
+    }
+  }
+}
