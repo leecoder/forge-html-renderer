@@ -87,6 +87,8 @@ function App() {
   const [isLivePage, setIsLivePage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [blockedDomains, setBlockedDomains] = useState([]);
+  const [resourceErrors, setResourceErrors] = useState([]);
+  const [renderToken, setRenderToken] = useState(0);
 
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -147,24 +149,80 @@ function App() {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.data && event.data.type === "htmlRendererHeight" && event.data.height > 0) {
+      const isCurrentIframeMessage =
+        event.source === iframeRef.current?.contentWindow &&
+        event.data?.renderToken === loadVersionRef.current;
+
+      if (event.data?.type === "htmlRendererHeight" && event.data.height > 0 && isCurrentIframeMessage) {
         contentHeightRef.current = event.data.height;
         if (!heightInput) {
           const autoHeight = Math.max(MIN_HEIGHT, event.data.height);
           setIframeHeight(autoHeight > DEFAULT_HEIGHT ? DEFAULT_HEIGHT : autoHeight);
         }
       }
+
+      if (
+        event.data?.type !== "htmlRendererResourceError" ||
+        !isCurrentIframeMessage
+      ) {
+        return;
+      }
+
+      const { hostname, resourceType } = event.data;
+      if (typeof hostname !== "string" || typeof resourceType !== "string") return;
+
+      const resource = `${hostname} (${resourceType})`;
+      setResourceErrors((current) => current.includes(resource) ? current : [...current, resource]);
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [heightInput]);
 
-  const getEnhancedHtml = (html) => {
-    const heightScript = '<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()<\/script>';
-    if (html.includes("</body>")) {
-      return html.replace("</body>", heightScript + "</body>");
+  const getEnhancedHtml = (html, currentRenderToken) => {
+    const resourceErrorScript = `(function () {
+  function reportResourceError(event) {
+    var target = event.target;
+    if (!target || !target.tagName) return;
+
+    var tagName = target.tagName.toLowerCase();
+    if (tagName !== "img" && tagName !== "script" && tagName !== "link") return;
+    if (tagName === "link" && !(target.rel || "").toLowerCase().split(/\\s+/).includes("stylesheet")) return;
+
+    var rawUrl = target.currentSrc || target.src || target.href;
+    if (!rawUrl) return;
+
+    try {
+      var parsed = new URL(rawUrl, document.baseURI);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
+      window.parent.postMessage({
+        type: "htmlRendererResourceError",
+        resourceType: tagName === "link" ? "style" : tagName,
+        hostname: parsed.hostname,
+        renderToken: ${currentRenderToken}
+      }, "*");
+    } catch (error) {
+      return;
     }
-    return html + heightScript;
+  }
+
+  document.addEventListener("error", reportResourceError, true);
+})();
+`;
+    const heightScript = '(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h,renderToken:' + currentRenderToken + '},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()';
+
+    const parsedHtml = new DOMParser().parseFromString(html, "text/html");
+    const resourceScriptElement = parsedHtml.createElement("script");
+    resourceScriptElement.textContent = resourceErrorScript;
+    parsedHtml.head.prepend(resourceScriptElement);
+
+    const heightScriptElement = parsedHtml.createElement("script");
+    heightScriptElement.textContent = heightScript;
+    parsedHtml.body.append(heightScriptElement);
+
+    const doctype = parsedHtml.doctype
+      ? new XMLSerializer().serializeToString(parsedHtml.doctype)
+      : "";
+    return doctype + parsedHtml.documentElement.outerHTML;
   };
 
   const loadContent = async (attachmentId) => {
@@ -173,12 +231,14 @@ function App() {
     try {
       setLoading(true);
       setError(null);
+      setResourceErrors([]);
 
       const first = await invoke("getAttachmentContent", { attachmentId, offset: 0 });
       if (loadVersionRef.current !== currentVersion) return;
 
       if (first.done) {
         setHtmlContent(first.html);
+        setRenderToken(currentVersion);
         setBlockedDomains(getBlockedDomains(first.html));
         return;
       }
@@ -204,6 +264,7 @@ function App() {
       if (loadVersionRef.current !== currentVersion) return;
       const fullHtml = chunks.join("");
       setHtmlContent(fullHtml);
+      setRenderToken(currentVersion);
       setBlockedDomains(getBlockedDomains(fullHtml));
     } catch (err) {
       if (loadVersionRef.current !== currentVersion) return;
@@ -230,8 +291,10 @@ function App() {
         setShowToolbar(false);
       }
     } else {
+      loadVersionRef.current += 1;
       setHtmlContent(null);
       setBlockedDomains([]);
+      setResourceErrors([]);
     }
   };
 
@@ -430,6 +493,15 @@ function App() {
         </div>
       )}
 
+      {resourceErrors.length > 0 && (
+        <div style={styles.warning} role="alert">
+          External resources failed to load: {resourceErrors.join(", ")}
+          <div style={styles.warningHint}>
+            Some content may be incomplete. Check the resource URL or add its domain to manifest.yml when it is an approved source.
+          </div>
+        </div>
+      )}
+
       {!htmlContent && !loading && (
         <div style={styles.empty}>
           No HTML attachment selected. Upload or select an HTML file.
@@ -440,7 +512,7 @@ function App() {
         <div style={{ position: "relative" }}>
           <iframe
             ref={iframeRef}
-            srcDoc={getEnhancedHtml(htmlContent)}
+            srcDoc={getEnhancedHtml(htmlContent, renderToken)}
             sandbox={sandboxFlags}
             style={{
               ...styles.iframe,
