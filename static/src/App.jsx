@@ -88,6 +88,7 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [blockedDomains, setBlockedDomains] = useState([]);
   const [resourceErrors, setResourceErrors] = useState([]);
+  const [renderToken, setRenderToken] = useState(0);
 
   const iframeRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -148,7 +149,11 @@ function App() {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.data && event.data.type === "htmlRendererHeight" && event.data.height > 0) {
+      const isCurrentIframeMessage =
+        event.source === iframeRef.current?.contentWindow &&
+        event.data?.renderToken === loadVersionRef.current;
+
+      if (event.data?.type === "htmlRendererHeight" && event.data.height > 0 && isCurrentIframeMessage) {
         contentHeightRef.current = event.data.height;
         if (!heightInput) {
           const autoHeight = Math.max(MIN_HEIGHT, event.data.height);
@@ -158,7 +163,7 @@ function App() {
 
       if (
         event.data?.type !== "htmlRendererResourceError" ||
-        event.source !== iframeRef.current?.contentWindow
+        !isCurrentIframeMessage
       ) {
         return;
       }
@@ -173,9 +178,8 @@ function App() {
     return () => window.removeEventListener("message", handleMessage);
   }, [heightInput]);
 
-  const getEnhancedHtml = (html) => {
-    const resourceErrorScript = `<script>
-(function () {
+  const getEnhancedHtml = (html, currentRenderToken) => {
+    const resourceErrorScript = `(function () {
   function reportResourceError(event) {
     var target = event.target;
     if (!target || !target.tagName) return;
@@ -193,7 +197,8 @@ function App() {
       window.parent.postMessage({
         type: "htmlRendererResourceError",
         resourceType: tagName === "link" ? "style" : tagName,
-        hostname: parsed.hostname
+        hostname: parsed.hostname,
+        renderToken: ${currentRenderToken}
       }, "*");
     } catch (error) {
       return;
@@ -202,20 +207,20 @@ function App() {
 
   document.addEventListener("error", reportResourceError, true);
 })();
-<\/script>`;
-    const heightScript = '<script>(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()<\/script>';
+`;
+    const heightScript = '(function(){function r(){var h=Math.max(document.body.scrollHeight,document.body.offsetHeight,document.documentElement.scrollHeight,document.documentElement.offsetHeight);window.parent.postMessage({type:"htmlRendererHeight",height:h,renderToken:' + currentRenderToken + '},"*")}if(document.readyState==="complete")r();else window.addEventListener("load",r);new MutationObserver(function(){setTimeout(r,50)}).observe(document.body,{childList:true,subtree:true,attributes:true});window.addEventListener("resize",r)})()';
 
-    const headMatch = /<head\b[^>]*>/i.exec(html);
-    const bodyMatch = /<body\b[^>]*>/i.exec(html);
-    const insertionPoint = headMatch || bodyMatch;
-    const enhancedHtml = insertionPoint
-      ? html.slice(0, insertionPoint.index + insertionPoint[0].length) + resourceErrorScript + html.slice(insertionPoint.index + insertionPoint[0].length)
-      : resourceErrorScript + html;
+    const parsedHtml = new DOMParser().parseFromString(html, "text/html");
+    const resourceScriptElement = parsedHtml.createElement("script");
+    resourceScriptElement.textContent = resourceErrorScript;
+    parsedHtml.head.prepend(resourceScriptElement);
 
-    if (enhancedHtml.includes("</body>")) {
-      return enhancedHtml.replace("</body>", heightScript + "</body>");
-    }
-    return enhancedHtml + heightScript;
+    const heightScriptElement = parsedHtml.createElement("script");
+    heightScriptElement.textContent = heightScript;
+    parsedHtml.body.append(heightScriptElement);
+
+    const doctype = parsedHtml.doctype ? "<!DOCTYPE html>" : "";
+    return doctype + parsedHtml.documentElement.outerHTML;
   };
 
   const loadContent = async (attachmentId) => {
@@ -231,6 +236,7 @@ function App() {
 
       if (first.done) {
         setHtmlContent(first.html);
+        setRenderToken(currentVersion);
         setBlockedDomains(getBlockedDomains(first.html));
         return;
       }
@@ -256,6 +262,7 @@ function App() {
       if (loadVersionRef.current !== currentVersion) return;
       const fullHtml = chunks.join("");
       setHtmlContent(fullHtml);
+      setRenderToken(currentVersion);
       setBlockedDomains(getBlockedDomains(fullHtml));
     } catch (err) {
       if (loadVersionRef.current !== currentVersion) return;
@@ -282,6 +289,7 @@ function App() {
         setShowToolbar(false);
       }
     } else {
+      loadVersionRef.current += 1;
       setHtmlContent(null);
       setBlockedDomains([]);
       setResourceErrors([]);
@@ -502,7 +510,7 @@ function App() {
         <div style={{ position: "relative" }}>
           <iframe
             ref={iframeRef}
-            srcDoc={getEnhancedHtml(htmlContent)}
+            srcDoc={getEnhancedHtml(htmlContent, renderToken)}
             sandbox={sandboxFlags}
             style={{
               ...styles.iframe,
