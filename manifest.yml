@@ -73,6 +73,8 @@ permissions:
       - address: "*.basemaps.cartocdn.com"
       - address: "*.tile.openstreetmap.org"
       - address: "cdn.jsdelivr.net"
+      - address: "server.arcgisonline.com"
+      - address: "tlpimg1.tmap.co.kr"
     fetch:
       backend:
         - address: "*.atlassian.net"
