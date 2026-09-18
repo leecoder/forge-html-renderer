@@ -219,7 +219,9 @@ function App() {
     heightScriptElement.textContent = heightScript;
     parsedHtml.body.append(heightScriptElement);
 
-    const doctype = parsedHtml.doctype ? "<!DOCTYPE html>" : "";
+    const doctype = parsedHtml.doctype
+      ? new XMLSerializer().serializeToString(parsedHtml.doctype)
+      : "";
     return doctype + parsedHtml.documentElement.outerHTML;
   };
 
